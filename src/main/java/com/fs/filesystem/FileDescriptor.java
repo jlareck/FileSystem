@@ -9,4 +9,8 @@ public class FileDescriptor {
         this.fileLength = fileLength;
         this.fileContentsDiskBlocks = fileContentsDiskBlocks;
     }
+    public FileDescriptor() {
+        fileLength = 0;
+        fileContentsDiskBlocks = new int[]{-1,-1,-1};
+    }
 }
