@@ -4,6 +4,7 @@ import com.fs.iosystem.IOSystem;
 import com.fs.ldisk.LDisk;
 import com.fs.utils.FileSystemConfig;
 
+import java.math.BigInteger;
 import java.util.BitSet;
 
 public class FileSystem {
@@ -31,7 +32,7 @@ public class FileSystem {
         // bitmap setting true: 1 for bitmap, 6 for descriptors, 3 for directory
         bitmap = new BitSet(LDisk.BLOCKS_AMOUNT);
         bitmap.set(0,10,true);
-        this.ioSystem.writeBlock(0, bitmap.toByteArray());
+        this.ioSystem.writeBlock(0, bitsetToByteArray(bitmap));
         directory = new Directory();
         descriptors = new FileDescriptor[FileSystemConfig.NUMBER_OF_DESCRIPTORS];
         // index where data blocks starts (maybe it will better to change in later)
@@ -137,4 +138,22 @@ public class FileSystem {
         return -1;
     }
 
+    private static byte[] bitsetToByteArray(BitSet bits) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < bits.size(); i++) {
+            sb.append(bits.get(i) ? 1 : 0);
+        }
+        for (int i = 0; i < 448; i++) {
+            sb.append('0');
+        }
+        return convertBinaryStringToBytes(sb.toString());
+    }
+    private static byte[] convertBinaryStringToBytes(String byteString) {
+        byte[] result = new byte[64];
+        byte[] tmp = new BigInteger(byteString, 2).toByteArray();
+        for (int i = 0; i < 64; i++) {
+            result[i] = tmp[i + 1];
+        }
+        return result;
+    }
 }
