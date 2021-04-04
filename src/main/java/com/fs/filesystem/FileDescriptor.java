@@ -3,14 +3,14 @@ package com.fs.filesystem;
 public class FileDescriptor {
 
     public int fileLength; // in bytes
-    public int[] fileContentsDiskBlocks;
+    public int[] fileContentsInDiskBlocks;
 
-    public FileDescriptor(int fileLength, int[] fileContentsDiskBlocks) {
+    public FileDescriptor(int fileLength, int[] fileContentsInDiskBlocks) {
         this.fileLength = fileLength;
-        this.fileContentsDiskBlocks = fileContentsDiskBlocks;
+        this.fileContentsInDiskBlocks = fileContentsInDiskBlocks;
     }
     public FileDescriptor() {
         fileLength = 0;
-        fileContentsDiskBlocks = new int[]{-1,-1,-1};
+        fileContentsInDiskBlocks = new int[]{-1,-1,-1};
     }
 }

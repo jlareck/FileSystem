@@ -13,7 +13,7 @@ public class FileSystem {
     public BitSet bitmap;
     public FileDescriptor[] descriptors;
     public Directory directory;
-
+    public OpenFileTable openFileTable;
     /**
      * This constructor initialise bitmap and sets for first 10 bits - true flag.
      * This means that first 10 blocks on disk are reserved for bitmap (1 block, 8 bytes in it),
@@ -31,15 +31,20 @@ public class FileSystem {
 
         // bitmap setting true: 1 for bitmap, 6 for descriptors, 3 for directory
         bitmap = new BitSet(LDisk.BLOCKS_AMOUNT);
-        bitmap.set(0,10,true);
+        bitmap.set(0,8,true);
         this.ioSystem.writeBlock(0, bitsetToByteArray(bitmap));
         directory = new Directory();
         descriptors = new FileDescriptor[FileSystemConfig.NUMBER_OF_DESCRIPTORS];
         // index where data blocks starts (maybe it will better to change in later)
         int dataBlocksStartingPosition = 7;
+        // initializing descriptor for directory TODO: save directory descriptor to disk
         descriptors[0] = new FileDescriptor(0,
-                new int[]{dataBlocksStartingPosition, dataBlocksStartingPosition+1, dataBlocksStartingPosition+2});
+                new int[]{dataBlocksStartingPosition, -1, -1});
 
+        openFileTable = new OpenFileTable();
+        openFileTable.entries[0] = new OpenFileTableEntry();
+        // OFT first entry for directory
+        openFileTable.entries[0].fileDescriptorIndex = 0;
     }
 
     /**
@@ -60,6 +65,14 @@ public class FileSystem {
             System.out.println("ERROR! File name is larger than maximum length or it is less than 1");
             return FileSystemConfig.ERROR;
         }
+        // Checking if there is already file in the directory with name: fileName
+        for (int i = 0; i < directory.listOfEntries.size(); i++) {
+            if (directory.listOfEntries.get(i).fileName.equals(fileName)) {
+                System.out.println("ERROR! THE " + fileName + " ALREADY EXISTS");
+                return FileSystemConfig.ERROR;
+            }
+        }
+        // searching free descriptor
         int freeDescriptorIndex = -1;
         for (int i = 0; i < descriptors.length; i++) {
             if (descriptors[i] == null) {
@@ -71,15 +84,12 @@ public class FileSystem {
             System.out.println("ERROR! THERE IS NO FREE DESCRIPTOR IN THE FILESYSTEM");
             return FileSystemConfig.ERROR;
         }
-        for (int i = 0; i < directory.listOfEntries.size(); i++) {
-            if (directory.listOfEntries.get(i).fileName.equals(fileName)) {
-                System.out.println("ERROR! THE " + fileName + " ALREADY EXISTS");
-                return FileSystemConfig.ERROR;
-            }
-        }
+
         directory.addEntryToDirectory(fileName, freeDescriptorIndex);
         descriptors[freeDescriptorIndex] = new FileDescriptor();
         System.out.println("The file " + fileName+ " has been created successfully");
+        // TODO: save directory and desriptor to disk
+
         return FileSystemConfig.SUCCESS;
     }
 
@@ -102,25 +112,27 @@ public class FileSystem {
             System.out.println("ERROR! File name is larger than maximum length or it is equal to zero");
             return FileSystemConfig.ERROR;
         }
-        int descriptorIndex = findDescriptorIndex(fileName);
+        int descriptorIndex = findDescriptorIndexByFileName(fileName);
         if (descriptorIndex == -1) {
             System.out.println("ERROR! There is no file with file name: " + fileName);
             return FileSystemConfig.ERROR;
         }
 
-        for (int i = 0; i < descriptors[descriptorIndex].fileContentsDiskBlocks.length; i++) {
-            if (descriptors[descriptorIndex].fileContentsDiskBlocks[i] != -1) {
-                bitmap.set(descriptors[descriptorIndex].fileContentsDiskBlocks[i], false);
-                ioSystem.writeBlock(descriptors[descriptorIndex].fileContentsDiskBlocks[i], new byte[64]);
+        for (int i = 0; i < descriptors[descriptorIndex].fileContentsInDiskBlocks.length; i++) {
+            if (descriptors[descriptorIndex].fileContentsInDiskBlocks[i] != -1) {
+                bitmap.set(descriptors[descriptorIndex].fileContentsInDiskBlocks[i], false);
+                ioSystem.writeBlock(descriptors[descriptorIndex].fileContentsInDiskBlocks[i], new byte[64]);
             }
         }
+        // TODO: save directory to disk
         directory.listOfEntries.remove(findDirectoryEntryIndex(descriptorIndex));
         descriptors[descriptorIndex] = null;
         System.out.println("The file " + fileName+ " has been destroyed successfully");
         return FileSystemConfig.SUCCESS;
 
     }
-    private int findDescriptorIndex(String fileName) {
+    private int findDescriptorIndexByFileName(String fileName) {
+        // TODO: read directory from disk
         for (int i = 0; i < directory.listOfEntries.size(); i++) {
             if (directory.listOfEntries.get(i).fileName.equals(fileName)) {
                 return directory.listOfEntries.get(i).fileDescriptorIndex;
@@ -129,6 +141,7 @@ public class FileSystem {
         return -1;
     }
     private int findDirectoryEntryIndex(int descriptorIndex) {
+        // TODO: read directory from disk
         for (int i = 0; i < FileSystemConfig.NUMBER_OF_DESCRIPTORS - 1; i++) {
             if (directory.listOfEntries.get(i) != null &&
                     directory.listOfEntries.get(i).fileDescriptorIndex == descriptorIndex) {
