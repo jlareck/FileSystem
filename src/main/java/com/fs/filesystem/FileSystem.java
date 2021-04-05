@@ -101,15 +101,24 @@ public class FileSystem {
 
         OpenFileTableEntry entry = openFileTable.entries[OFTEntryIndex];
 
-        //when buffer closes, we must write buffer content to OFT
+        if(entry == null) {
+            System.out.println("ERROR! WRONG INDEX");
+            return -1;
+        }
+
         FileDescriptor fileDescriptor = descriptors[entry.fileDescriptorIndex];
 
-        int currentBlockNumber = entry.getCurrentDataBlockPosition();
+        //when buffer closes, we must write buffer content to OFT
+        if(fileDescriptor.fileLength > 0) {
 
-        int currentBlockNumberOnDisk = fileDescriptor.fileContentsInDiskBlocks[currentBlockNumber];
+            int currentBlockNumber = entry.getCurrentDataBlockPosition();
 
-        ioSystem.writeBlock(currentBlockNumberOnDisk, entry.readWriteBuffer);
+            int currentBlockNumberOnDisk = fileDescriptor.fileContentsInDiskBlocks[currentBlockNumber];
 
+            ioSystem.writeBlock(currentBlockNumberOnDisk, entry.readWriteBuffer);
+        }
+
+        //remove OFT entry
         openFileTable.entries[OFTEntryIndex] = null;
 
         return 1;

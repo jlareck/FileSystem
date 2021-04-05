@@ -5,7 +5,7 @@ import com.fs.utils.FileSystemConfig;
 public class OpenFileTable {
     final public static int OFT_NUMBER_OF_ENTRIES = 4;
 
-    OpenFileTableEntry[] entries;
+    public OpenFileTableEntry[] entries;
 
     public OpenFileTable() {
         entries = new OpenFileTableEntry[OFT_NUMBER_OF_ENTRIES];
