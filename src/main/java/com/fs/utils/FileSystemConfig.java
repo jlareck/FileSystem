@@ -1,8 +1,6 @@
 package com.fs.utils;
 
 public class FileSystemConfig {
-
-    final public static int OFT_NUMBER_OF_ENTRIES = 4;
     final public static int NUMBER_OF_DESCRIPTOR_BLOCKS = 6;
     final public static int NUMBER_OF_DESCRIPTORS = 24;
     final public static int NUMBER_OF_DESCRIPTORS_IN_ONE_BLOCK = 4;

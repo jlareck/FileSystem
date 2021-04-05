@@ -5,6 +5,7 @@ import com.fs.ldisk.LDisk;
 import com.fs.utils.FileSystemConfig;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.BitSet;
 
 public class FileSystem {
@@ -45,6 +46,73 @@ public class FileSystem {
         openFileTable.entries[0] = new OpenFileTableEntry();
         // OFT first entry for directory
         openFileTable.entries[0].fileDescriptorIndex = 0;
+    }
+
+    /**
+     * Opens file by its fileName and places it in OFT
+     * @param fileName name of the file
+     * @return index of file in OFT
+     */
+    public int open(String fileName) {
+        int fileDescriptorIndex = findDescriptorIndexByFileName(fileName);
+        if(fileDescriptorIndex == -1) {
+            System.out.println("ERROR! FILE " + fileName + " DOESN'T EXIST");
+            return -1;
+        }
+
+        if(openFileTable.getOFTEntryIndexByFDIndex(fileDescriptorIndex) != -1) {
+            System.out.println("ERROR! FILE " + fileName + " ALREADY OPENED");
+            return -1;
+        }
+
+        int freeOFTEntryIndex = openFileTable.getOFTFreeEntryIndex();
+        if(freeOFTEntryIndex == -1) {
+            System.out.println("ERROR! NO MORE SPACE IN OFT");
+            return -1;
+        }
+
+        OpenFileTableEntry openFileTableEntry = new OpenFileTableEntry();
+        openFileTableEntry.fileDescriptorIndex = fileDescriptorIndex;
+
+        //read first block of file to the buffer in OFT if file is not empty
+        if(descriptors[fileDescriptorIndex].fileLength > 0) {
+            ByteBuffer bytes = ByteBuffer.allocate(LDisk.BLOCK_LENGTH);
+            ioSystem.readBlock(descriptors[fileDescriptorIndex].fileContentsInDiskBlocks[0], bytes);
+            openFileTableEntry.readWriteBuffer = bytes.array();
+        }
+
+        openFileTable.entries[freeOFTEntryIndex] = openFileTableEntry;
+
+        return freeOFTEntryIndex;
+    }
+
+    /**
+     * Finds OFT entry by index
+     * Writes buffered data to LDisk
+     * Removes entry from OFT
+     * @param OFTEntryIndex index of file in OFT
+     * @return 1 if everything is OK
+     */
+    public int close(int OFTEntryIndex) {
+        if(OFTEntryIndex <= 0 || OFTEntryIndex >= OpenFileTable.OFT_NUMBER_OF_ENTRIES) {
+            System.out.println("ERROR! WRONG INDEX");
+            return -1;
+        }
+
+        OpenFileTableEntry entry = openFileTable.entries[OFTEntryIndex];
+
+        //when buffer closes, we must write buffer content to OFT
+        FileDescriptor fileDescriptor = descriptors[entry.fileDescriptorIndex];
+
+        int currentBlockNumber = entry.getCurrentDataBlockPosition();
+
+        int currentBlockNumberOnDisk = fileDescriptor.fileContentsInDiskBlocks[currentBlockNumber];
+
+        ioSystem.writeBlock(currentBlockNumberOnDisk, entry.readWriteBuffer);
+
+        openFileTable.entries[OFTEntryIndex] = null;
+
+        return 1;
     }
 
     /**

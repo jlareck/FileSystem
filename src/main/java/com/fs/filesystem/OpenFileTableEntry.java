@@ -1,18 +1,38 @@
 package com.fs.filesystem;
 
-import com.fs.iosystem.IOSystem;
 import com.fs.ldisk.LDisk;
 
-import java.nio.ByteBuffer;
-
 public class OpenFileTableEntry {
+    /**
+     * Contains buffered data
+     */
     byte[] readWriteBuffer;
-    int currentPositionIndex;
+    /**
+     * Current position in file. Index of the file byte
+     */
+    int currentPositionInFile;
+    /**
+     * Index of file descriptor for the file
+     */
     int fileDescriptorIndex;
 
     public OpenFileTableEntry() {
         readWriteBuffer = new byte[LDisk.BLOCK_LENGTH];
-        currentPositionIndex = 0;
+        currentPositionInFile = 0;
         fileDescriptorIndex = -1;
+    }
+
+    /**
+     * @return Number of file data block that our entry is currently buffering
+     */
+    public int getCurrentDataBlockPosition() {
+        return currentPositionInFile / LDisk.BLOCK_LENGTH;
+    }
+
+    /**
+     * @return Current position in readWriteBuffer
+     */
+    public int getCurrentBufferPosition() {
+        return currentPositionInFile % LDisk.BLOCK_LENGTH;
     }
 }
