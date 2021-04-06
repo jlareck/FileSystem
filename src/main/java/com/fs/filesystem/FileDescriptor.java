@@ -1,5 +1,7 @@
 package com.fs.filesystem;
 
+import java.util.Arrays;
+
 public class FileDescriptor {
 
     public int fileLength; // in bytes
@@ -10,7 +12,16 @@ public class FileDescriptor {
         this.fileContentsBlocksIndexes = fileContentsBlocksIndexes;
     }
     public FileDescriptor() {
-        fileLength = 0;
+        fileLength = -1;
         fileContentsBlocksIndexes = new int[]{-1,-1,-1};
+    }
+
+
+    @Override
+    public String toString() {
+        return "FileDescriptor{" +
+                "fileLength=" + fileLength +
+                ", fileContentsBlocksIndexes=" + Arrays.toString(fileContentsBlocksIndexes) +
+                '}';
     }
 }

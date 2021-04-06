@@ -102,6 +102,24 @@ public class FileSystemTest {
         assertEquals(-1, response);
     }
 
+    @Test
+    public void saveAndReadDescriptors() {
+        fileSystem.create("F1");
+        fileSystem.create("F2");
+        fileSystem.create("F3");
+        fileSystem.create("F4");
+        fileSystem.saveDescriptorsToDisk();
+        fileSystem.descriptors[1] = null;
+        assertNull(fileSystem.descriptors[1]);
+        fileSystem.readDescriptorsFromDisk();
+        assertNotNull(fileSystem.descriptors[1]);
+
+        fileSystem.destroy("F2");
+        fileSystem.saveDescriptorsToDisk();
+        fileSystem.create("F7");
+        fileSystem.readDescriptorsFromDisk();
+        assertNull(fileSystem.descriptors[2]);
+    }
 
 
 }

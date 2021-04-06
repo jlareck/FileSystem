@@ -172,7 +172,7 @@ public class FileSystem {
         System.out.println("The file " + fileName+ " has been created successfully");
         // TODO: save directory and desriptor to disk
 
-        saveDescriptorsToDisk();
+        //saveDescriptorsToDisk();
         return FileSystemConfig.SUCCESS;
     }
     public int searchFreeDataBlock(BitSet bits) {
@@ -247,10 +247,12 @@ public class FileSystem {
             ioSystem.readBlock(i, diskBlockBuffer);
             for (int j = 0; j < FileSystemConfig.NUMBER_OF_DESCRIPTORS_IN_ONE_BLOCK; j++) {
                 int lengthOfFile = diskBlockBuffer.getInt();
-                if (lengthOfFile == 0) {
+                if (lengthOfFile == -1) {
                     for (int k = 0; k < FileSystemConfig.MAXIMUM_NUMBER_OF_BLOCKS_PER_FILE; k++){
                         diskBlockBuffer.getInt();
                     }
+                    // TODO: discuss if it is necessary to restore empty descriptors or not
+                    descriptors[(i-1) * FileSystemConfig.NUMBER_OF_DESCRIPTORS_IN_ONE_BLOCK + j] = null;
                 }
                 else {
                     int[] dataBlocks = new int[FileSystemConfig.MAXIMUM_NUMBER_OF_BLOCKS_PER_FILE];
@@ -263,13 +265,14 @@ public class FileSystem {
             }
         }
     }
+
     public void saveDescriptorsToDisk() {
         for (int i = 1; i <= FileSystemConfig.NUMBER_OF_DESCRIPTOR_BLOCKS; i++) {
             ByteBuffer diskBlock = ByteBuffer.allocate(LDisk.BLOCK_LENGTH);
             for (int j = 0; j < FileSystemConfig.NUMBER_OF_DESCRIPTORS_IN_ONE_BLOCK; j++) {
                 int currentDescriptor = (i-1) * FileSystemConfig.NUMBER_OF_DESCRIPTORS_IN_ONE_BLOCK + j;
                 if (descriptors[currentDescriptor] == null) {
-                    diskBlock.putInt(0);
+                    diskBlock.putInt(-1);
                     for (int k = 0; k < FileSystemConfig.MAXIMUM_NUMBER_OF_BLOCKS_PER_FILE; k++) {
                         diskBlock.putInt(-1);
                     }
@@ -284,6 +287,8 @@ public class FileSystem {
             ioSystem.writeBlock(i, diskBlock.array());
         }
     }
+
+
 
     private static byte[] bitsetToByteArray(BitSet bits) {
         StringBuilder sb = new StringBuilder();
