@@ -18,11 +18,22 @@ public class FileSystemTest {
     void init() {
         fileSystem = new FileSystem(new IOSystem(new LDisk()));
     }
+
     @Test
-    public void test() {
-        assertEquals(fileSystem.create("FILE"), 1);
-        assertEquals(fileSystem.destroy("FILE"), 1);
+    public void create() {
+        assertEquals(1,fileSystem.create("FILE"));
+        assertEquals(9, fileSystem.searchFreeDataBlock(fileSystem.bitmap));
     }
+
+    @Test
+    public void destroy() {
+        assertEquals(1,fileSystem.create("FILE"));
+        assertEquals(9, fileSystem.searchFreeDataBlock(fileSystem.bitmap));
+        assertEquals(1,fileSystem.destroy("FILE"));
+        assertEquals(8, fileSystem.searchFreeDataBlock(fileSystem.bitmap));
+    }
+
+
 
     @Test
     public void open() {
@@ -91,6 +102,24 @@ public class FileSystemTest {
         assertEquals(-1, response);
     }
 
+    @Test
+    public void saveAndReadDescriptors() {
+        fileSystem.create("F1");
+        fileSystem.create("F2");
+        fileSystem.create("F3");
+        fileSystem.create("F4");
+        fileSystem.saveDescriptorsToDisk();
+        fileSystem.descriptors[1] = null;
+        assertNull(fileSystem.descriptors[1]);
+        fileSystem.readDescriptorsFromDisk();
+        assertNotNull(fileSystem.descriptors[1]);
+
+        fileSystem.destroy("F2");
+        fileSystem.saveDescriptorsToDisk();
+        fileSystem.create("F7");
+        fileSystem.readDescriptorsFromDisk();
+        assertNull(fileSystem.descriptors[2]);
+    }
 
 
 }
