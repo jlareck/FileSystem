@@ -46,6 +46,7 @@ public class FileSystem {
         openFileTable.entries[0] = new OpenFileTableEntry();
         // OFT first entry for directory
         openFileTable.entries[0].fileDescriptorIndex = 0;
+
     }
 
     /**
@@ -77,7 +78,7 @@ public class FileSystem {
         //read first block of file to the buffer in OFT if file is not empty
         if(descriptors[fileDescriptorIndex].fileLength > 0) {
             ByteBuffer bytes = ByteBuffer.allocate(LDisk.BLOCK_LENGTH);
-            ioSystem.readBlock(descriptors[fileDescriptorIndex].fileContentsInDiskBlocks[0], bytes);
+            ioSystem.readBlock(descriptors[fileDescriptorIndex].fileContentsBlocksIndexes[0], bytes);
             openFileTableEntry.readWriteBuffer = bytes.array();
         }
 
@@ -113,7 +114,7 @@ public class FileSystem {
 
             int currentBlockNumber = entry.getCurrentDataBlockPosition();
 
-            int currentBlockNumberOnDisk = fileDescriptor.fileContentsInDiskBlocks[currentBlockNumber];
+            int currentBlockNumberOnDisk = fileDescriptor.fileContentsBlocksIndexes[currentBlockNumber];
 
             ioSystem.writeBlock(currentBlockNumberOnDisk, entry.readWriteBuffer);
         }
@@ -163,13 +164,25 @@ public class FileSystem {
         }
 
         directory.addEntryToDirectory(fileName, freeDescriptorIndex);
-        descriptors[freeDescriptorIndex] = new FileDescriptor();
+
+        int freeBlockIndex = searchFreeDataBlock(bitmap);
+        bitmap.set(freeBlockIndex,true);
+        // TODO: maybe it is better to read bitmap from disk before searching free block
+        descriptors[freeDescriptorIndex] = new FileDescriptor(0, new int[]{freeBlockIndex,-1,-1});
         System.out.println("The file " + fileName+ " has been created successfully");
         // TODO: save directory and desriptor to disk
 
+        saveDescriptorsToDisk();
         return FileSystemConfig.SUCCESS;
     }
-
+    public int searchFreeDataBlock(BitSet bits) {
+        for (int i = 0; i < bits.size(); i++) {
+            if (!bits.get(i)) {
+                return i;
+            }
+        }
+        return -1;
+    }
 
     /**
      * Destroy method - destroys the file from the file system. If file name is larger
@@ -195,10 +208,10 @@ public class FileSystem {
             return FileSystemConfig.ERROR;
         }
 
-        for (int i = 0; i < descriptors[descriptorIndex].fileContentsInDiskBlocks.length; i++) {
-            if (descriptors[descriptorIndex].fileContentsInDiskBlocks[i] != -1) {
-                bitmap.set(descriptors[descriptorIndex].fileContentsInDiskBlocks[i], false);
-                ioSystem.writeBlock(descriptors[descriptorIndex].fileContentsInDiskBlocks[i], new byte[64]);
+        for (int i = 0; i < descriptors[descriptorIndex].fileContentsBlocksIndexes.length; i++) {
+            if (descriptors[descriptorIndex].fileContentsBlocksIndexes[i] != -1) {
+                bitmap.set(descriptors[descriptorIndex].fileContentsBlocksIndexes[i], false);
+                ioSystem.writeBlock(descriptors[descriptorIndex].fileContentsBlocksIndexes[i], new byte[64]);
             }
         }
         // TODO: save directory to disk
@@ -228,6 +241,50 @@ public class FileSystem {
         return -1;
     }
 
+    public void readDescriptorsFromDisk() {
+        for (int i = 1; i <= FileSystemConfig.NUMBER_OF_DESCRIPTOR_BLOCKS; i++) {
+            ByteBuffer diskBlockBuffer = ByteBuffer.allocate(LDisk.BLOCK_LENGTH);
+            ioSystem.readBlock(i, diskBlockBuffer);
+            for (int j = 0; j < FileSystemConfig.NUMBER_OF_DESCRIPTORS_IN_ONE_BLOCK; j++) {
+                int lengthOfFile = diskBlockBuffer.getInt();
+                if (lengthOfFile == 0) {
+                    for (int k = 0; k < FileSystemConfig.MAXIMUM_NUMBER_OF_BLOCKS_PER_FILE; k++){
+                        diskBlockBuffer.getInt();
+                    }
+                }
+                else {
+                    int[] dataBlocks = new int[FileSystemConfig.MAXIMUM_NUMBER_OF_BLOCKS_PER_FILE];
+                    for (int k = 0; k < FileSystemConfig.MAXIMUM_NUMBER_OF_BLOCKS_PER_FILE; k++){
+                        dataBlocks[k] = diskBlockBuffer.getInt();
+                    }
+                    descriptors[(i-1) * FileSystemConfig.NUMBER_OF_DESCRIPTORS_IN_ONE_BLOCK + j]
+                            = new FileDescriptor(lengthOfFile, dataBlocks);
+                }
+            }
+        }
+    }
+    public void saveDescriptorsToDisk() {
+        for (int i = 1; i <= FileSystemConfig.NUMBER_OF_DESCRIPTOR_BLOCKS; i++) {
+            ByteBuffer diskBlock = ByteBuffer.allocate(LDisk.BLOCK_LENGTH);
+            for (int j = 0; j < FileSystemConfig.NUMBER_OF_DESCRIPTORS_IN_ONE_BLOCK; j++) {
+                int currentDescriptor = (i-1) * FileSystemConfig.NUMBER_OF_DESCRIPTORS_IN_ONE_BLOCK + j;
+                if (descriptors[currentDescriptor] == null) {
+                    diskBlock.putInt(0);
+                    for (int k = 0; k < FileSystemConfig.MAXIMUM_NUMBER_OF_BLOCKS_PER_FILE; k++) {
+                        diskBlock.putInt(-1);
+                    }
+                }
+                else {
+                    diskBlock.putInt(descriptors[currentDescriptor].fileLength);
+                    for (int k = 0; k < FileSystemConfig.MAXIMUM_NUMBER_OF_BLOCKS_PER_FILE; k++) {
+                        diskBlock.putInt(descriptors[currentDescriptor].fileContentsBlocksIndexes[k]);
+                    }
+                }
+            }
+            ioSystem.writeBlock(i, diskBlock.array());
+        }
+    }
+
     private static byte[] bitsetToByteArray(BitSet bits) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < bits.size(); i++) {
@@ -236,11 +293,8 @@ public class FileSystem {
         for (int i = 0; i < 448; i++) {
             sb.append('0');
         }
-        return convertBinaryStringToBytes(sb.toString());
-    }
-    private static byte[] convertBinaryStringToBytes(String byteString) {
         byte[] result = new byte[64];
-        byte[] tmp = new BigInteger(byteString, 2).toByteArray();
+        byte[] tmp = new BigInteger(sb.toString(), 2).toByteArray();
         for (int i = 0; i < 64; i++) {
             result[i] = tmp[i + 1];
         }

@@ -18,11 +18,22 @@ public class FileSystemTest {
     void init() {
         fileSystem = new FileSystem(new IOSystem(new LDisk()));
     }
+
     @Test
-    public void test() {
-        assertEquals(fileSystem.create("FILE"), 1);
-        assertEquals(fileSystem.destroy("FILE"), 1);
+    public void create() {
+        assertEquals(1,fileSystem.create("FILE"));
+        assertEquals(9, fileSystem.searchFreeDataBlock(fileSystem.bitmap));
     }
+
+    @Test
+    public void destroy() {
+        assertEquals(1,fileSystem.create("FILE"));
+        assertEquals(9, fileSystem.searchFreeDataBlock(fileSystem.bitmap));
+        assertEquals(1,fileSystem.destroy("FILE"));
+        assertEquals(8, fileSystem.searchFreeDataBlock(fileSystem.bitmap));
+    }
+
+
 
     @Test
     public void open() {

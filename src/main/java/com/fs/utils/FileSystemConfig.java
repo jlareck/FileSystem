@@ -8,4 +8,5 @@ public class FileSystemConfig {
     final public static int MAXIMUM_FILE_NAME_LENGTH = 4;
     final public static int ERROR = -1;
     final public static int SUCCESS = 1;
+    final public static int MAXIMUM_NUMBER_OF_BLOCKS_PER_FILE = 3;
 }
