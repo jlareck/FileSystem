@@ -33,7 +33,6 @@ public class FileSystem {
         // bitmap setting true: 1 for bitmap, 6 for descriptors, 3 for directory
         bitmap = new BitSet(LDisk.BLOCKS_AMOUNT);
         bitmap.set(0,8,true);
-        this.ioSystem.writeBlock(0, bitsetToByteArray(bitmap));
         directory = new Directory();
         descriptors = new FileDescriptor[FileSystemConfig.NUMBER_OF_DESCRIPTORS];
         // index where data blocks starts (maybe it will better to change in later)
@@ -286,23 +285,5 @@ public class FileSystem {
             }
             ioSystem.writeBlock(i, diskBlock.array());
         }
-    }
-
-
-
-    private static byte[] bitsetToByteArray(BitSet bits) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < bits.size(); i++) {
-            sb.append(bits.get(i) ? 1 : 0);
-        }
-        for (int i = 0; i < 448; i++) {
-            sb.append('0');
-        }
-        byte[] result = new byte[64];
-        byte[] tmp = new BigInteger(sb.toString(), 2).toByteArray();
-        for (int i = 0; i < 64; i++) {
-            result[i] = tmp[i + 1];
-        }
-        return result;
     }
 }
