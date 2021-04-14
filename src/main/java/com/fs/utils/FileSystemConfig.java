@@ -9,4 +9,5 @@ public class FileSystemConfig {
     final public static int ERROR = -1;
     final public static int SUCCESS = 1;
     final public static int MAXIMUM_NUMBER_OF_BLOCKS_PER_FILE = 3;
+    final public static int BITMAP_LENGTH_ON_DISK = 8;
 }

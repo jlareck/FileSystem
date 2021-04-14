@@ -33,7 +33,8 @@ public class FileSystem {
         // bitmap setting true: 1 for bitmap, 6 for descriptors, 3 for directory
         bitmap = new BitSet(LDisk.BLOCKS_AMOUNT);
         bitmap.set(0,8,true);
-        this.ioSystem.writeBlock(0, bitsetToByteArray(bitmap));
+        saveBitMapToDisk(bitmap);
+
         directory = new Directory();
         descriptors = new FileDescriptor[FileSystemConfig.NUMBER_OF_DESCRIPTORS];
         // index where data blocks starts (maybe it will better to change in later)
@@ -46,7 +47,6 @@ public class FileSystem {
         openFileTable.entries[0] = new OpenFileTableEntry();
         // OFT first entry for directory
         openFileTable.entries[0].fileDescriptorIndex = 0;
-
     }
 
     /**
@@ -167,6 +167,7 @@ public class FileSystem {
 
         int freeBlockIndex = searchFreeDataBlock(bitmap);
         bitmap.set(freeBlockIndex,true);
+        saveBitMapToDisk(bitmap);
         // TODO: maybe it is better to read bitmap from disk before searching free block
         descriptors[freeDescriptorIndex] = new FileDescriptor(0, new int[]{freeBlockIndex,-1,-1});
         System.out.println("The file " + fileName+ " has been created successfully");
@@ -211,6 +212,7 @@ public class FileSystem {
         for (int i = 0; i < descriptors[descriptorIndex].fileContentsBlocksIndexes.length; i++) {
             if (descriptors[descriptorIndex].fileContentsBlocksIndexes[i] != -1) {
                 bitmap.set(descriptors[descriptorIndex].fileContentsBlocksIndexes[i], false);
+                saveBitMapToDisk(bitmap);
                 ioSystem.writeBlock(descriptors[descriptorIndex].fileContentsBlocksIndexes[i], new byte[64]);
             }
         }
@@ -307,6 +309,27 @@ public class FileSystem {
         return -1;
     }
 
+    /**
+     * Update bitmap on disk
+     */
+    public void saveBitMapToDisk(BitSet bitmap) {
+        //convert bitMap to byte array
+        byte[] bitSetBytes = bitmap.toByteArray();
+
+        //read first block, because it contains bitmap(first 7 bytes)
+        ByteBuffer diskBlockBuffer = ByteBuffer.allocate(LDisk.BLOCK_LENGTH);
+        ioSystem.readBlock(0, diskBlockBuffer);
+
+        //override bitMap in buffer
+        for(int i=0;i<bitSetBytes.length;i++) {
+            diskBlockBuffer.put(i, bitSetBytes[i]);
+        }
+
+        //flush buffer to disk
+        byte[] bufferBytes = diskBlockBuffer.array();
+        ioSystem.writeBlock(0, bufferBytes);
+    }
+
     public void readDescriptorsFromDisk() {
         for (int i = 1; i <= FileSystemConfig.NUMBER_OF_DESCRIPTOR_BLOCKS; i++) {
             ByteBuffer diskBlockBuffer = ByteBuffer.allocate(LDisk.BLOCK_LENGTH);
@@ -352,23 +375,5 @@ public class FileSystem {
             }
             ioSystem.writeBlock(i, diskBlock.array());
         }
-    }
-
-
-
-    private static byte[] bitsetToByteArray(BitSet bits) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < bits.size(); i++) {
-            sb.append(bits.get(i) ? 1 : 0);
-        }
-        for (int i = 0; i < 448; i++) {
-            sb.append('0');
-        }
-        byte[] result = new byte[64];
-        byte[] tmp = new BigInteger(sb.toString(), 2).toByteArray();
-        for (int i = 0; i < 64; i++) {
-            result[i] = tmp[i + 1];
-        }
-        return result;
     }
 }

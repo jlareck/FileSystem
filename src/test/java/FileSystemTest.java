@@ -2,10 +2,13 @@
 import com.fs.filesystem.FileSystem;
 import com.fs.iosystem.IOSystem;
 import com.fs.ldisk.LDisk;
+import com.fs.utils.FileSystemConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Arrays;
 
@@ -119,6 +122,36 @@ public class FileSystemTest {
         fileSystem.create("F7");
         fileSystem.readDescriptorsFromDisk();
         assertNull(fileSystem.descriptors[2]);
+    }
+
+    @Test
+    void saveBitMapToDisk() {
+        ByteBuffer diskBlockBuffer = ByteBuffer.allocate(LDisk.BLOCK_LENGTH);
+        fileSystem.ioSystem.readBlock(0, diskBlockBuffer);
+
+        byte[] blockBytes = diskBlockBuffer.array();
+        byte[] bitMapBytes = Arrays.copyOfRange(blockBytes, 0, FileSystemConfig.BITMAP_LENGTH_ON_DISK);
+
+        BitSet bitMapOnDisk = BitSet.valueOf(bitMapBytes);
+
+        //previously bits were false
+        assertFalse(bitMapOnDisk.get(9));
+        assertFalse(bitMapOnDisk.get(10));
+
+        //set them to true
+        BitSet bitMap = fileSystem.bitmap;
+        bitMap.set(9, true);
+        bitMap.set(10, true);
+
+        fileSystem.saveBitMapToDisk(bitMap);
+
+        fileSystem.ioSystem.readBlock(0, diskBlockBuffer);
+        blockBytes = diskBlockBuffer.array();
+        bitMapBytes = Arrays.copyOfRange(blockBytes, 0, FileSystemConfig.BITMAP_LENGTH_ON_DISK);
+        bitMapOnDisk = BitSet.valueOf(bitMapBytes);
+        //and now these bits are updated
+        assertTrue(bitMapOnDisk.get(9));
+        assertTrue(bitMapOnDisk.get(10));
     }
 
 
