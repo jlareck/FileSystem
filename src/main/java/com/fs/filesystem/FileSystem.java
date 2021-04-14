@@ -221,6 +221,72 @@ public class FileSystem {
         return FileSystemConfig.SUCCESS;
 
     }
+
+    public int read(int OFTEntryIndex, ByteBuffer memArea, int count) {
+        if(OFTEntryIndex <= 0 || OFTEntryIndex >= OpenFileTable.OFT_NUMBER_OF_ENTRIES) {
+            System.out.println("ERROR! WRONG INDEX");
+            return -1;
+        }
+        if (count <= 0) {
+            return -1;
+        }
+
+        OpenFileTableEntry entry = openFileTable.entries[OFTEntryIndex];
+
+        if(entry == null) {
+            System.out.println("ERROR! WRONG INDEX");
+            return -1;
+        }
+
+        FileDescriptor fileDescriptor = descriptors[entry.fileDescriptorIndex];
+
+        if(fileDescriptor.fileLength == 0) {
+            return -1;
+        }
+
+        if (writeBuffer(entry, fileDescriptor) == -1) {
+            return -1;
+        }
+
+        // find current position inside RWBuffer
+        int currentBufferPosition = entry.currentPositionInFile % ioSystem.getlDisk().BLOCK_LENGTH;
+        int currentMemoryPosition = 0;
+
+        int counter = 0;
+
+        // read count bytes starting at RWBuffer[currentBufferPosition] to memArea
+        for (int i = 0; i < count && i < memArea.array().length; i++) {
+            // if end of file -> return number of bytes read
+            if (entry.currentPositionInFile == fileDescriptor.fileLength) {
+                System.out.println("The end of the file is reached");
+                return counter;
+            } else {
+                // if end of block -> write buffer to the disk, then read next block to RWBuffer
+                if (currentBufferPosition == ioSystem.getlDisk().BLOCK_LENGTH) {
+
+                    writeBuffer(entry, fileDescriptor);
+
+                    currentBufferPosition = 0;
+                }
+
+                // read 1 byte to memory
+                memArea.put(currentMemoryPosition, entry.readWriteBuffer[currentBufferPosition]);
+                // update positions, counter
+                counter++;
+                currentBufferPosition++;
+                currentMemoryPosition++;
+                entry.currentPositionInFile++;
+            }
+        }
+
+        // entry.currentPosition - points to first byte after last accessed
+        return counter;
+    }
+
+    private int writeBuffer(OpenFileTableEntry entry, FileDescriptor fileDescriptor) {
+        return -1;
+    }
+
     private int findDescriptorIndexByFileName(String fileName) {
         // TODO: read directory from disk
         for (int i = 0; i < directory.listOfEntries.size(); i++) {

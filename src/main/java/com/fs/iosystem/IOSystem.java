@@ -12,6 +12,10 @@ public class IOSystem {
         this.lDisk = lDisk;
     }
 
+    public LDisk getlDisk() {
+        return lDisk;
+    }
+
     /**
      * This copies the logical block ldisk[i] into main memory starting at the location
      * specified by the pointer p. The number of characters copied corresponds to the
