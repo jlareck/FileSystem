@@ -287,7 +287,49 @@ public class FileSystem {
     }
 
     private int writeBuffer(OpenFileTableEntry entry, FileDescriptor fileDescriptor) {
-        return -1;
+        if (entry.fileBlockInBuffer == -1) {
+            return -1;
+        }
+        // if buffer holds different block
+        if (entry.fileBlockInBuffer != (entry.currentPositionInFile / ioSystem.getlDisk().BLOCK_LENGTH)) {
+            if (entry.bufferModified) {
+                int diskBlock = fileDescriptor.fileContentsBlocksIndexes[entry.fileBlockInBuffer];
+                try {
+                    ioSystem.writeBlock(diskBlock, entry.readWriteBuffer);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            try {
+                int newFileBlock = entry.currentPositionInFile / ioSystem.getlDisk().BLOCK_LENGTH;
+
+                if (fileDescriptor.fileContentsBlocksIndexes[newFileBlock] == -1) {
+                    int newDiskBlock = -1;
+                    for (int i = 8; i < 64; i++) {
+                        if (!bitmap.get(i)) {
+                            newDiskBlock = i;
+                            break;
+                        }
+                    }
+                    if (newDiskBlock == -1) {
+                        return -1;
+                    }
+                    fileDescriptor.fileContentsBlocksIndexes[newFileBlock] = newDiskBlock;
+                    fileDescriptor.fileLength += ioSystem.getlDisk().BLOCK_LENGTH;
+                    bitmap.set(newDiskBlock, true);
+                }
+
+                ByteBuffer temp = ByteBuffer.allocate(ioSystem.getlDisk().BLOCK_LENGTH);
+                ioSystem.readBlock(fileDescriptor.fileContentsBlocksIndexes[newFileBlock], temp);
+                entry.readWriteBuffer = temp.array();
+                entry.bufferModified = false;
+                entry.fileBlockInBuffer = newFileBlock;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return 1;
     }
 
     private int findDescriptorIndexByFileName(String fileName) {
