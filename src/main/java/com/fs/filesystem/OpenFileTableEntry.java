@@ -15,11 +15,15 @@ public class OpenFileTableEntry {
      * Index of file descriptor for the file
      */
     int fileDescriptorIndex;
+    boolean bufferModified;
+    int fileBlockInBuffer;
 
     public OpenFileTableEntry() {
         readWriteBuffer = new byte[LDisk.BLOCK_LENGTH];
         currentPositionInFile = 0;
         fileDescriptorIndex = -1;
+        bufferModified = false;
+        fileBlockInBuffer = -1;
     }
 
     /**

@@ -79,6 +79,7 @@ public class FileSystem {
         if(descriptors[fileDescriptorIndex].fileLength > 0) {
             ByteBuffer bytes = ByteBuffer.allocate(LDisk.BLOCK_LENGTH);
             ioSystem.readBlock(descriptors[fileDescriptorIndex].fileContentsBlocksIndexes[0], bytes);
+            openFileTable.entries[freeOFTEntryIndex].fileBlockInBuffer = 0;
             openFileTableEntry.readWriteBuffer = bytes.array();
         }
 
