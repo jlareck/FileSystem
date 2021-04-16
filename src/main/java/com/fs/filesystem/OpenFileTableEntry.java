@@ -15,7 +15,13 @@ public class OpenFileTableEntry {
      * Index of file descriptor for the file
      */
     int fileDescriptorIndex;
+    /**
+     * Was buffer modified or not
+     */
     boolean bufferModified;
+    /**
+     * File block which is stored in buffer
+     */
     int fileBlockInBuffer;
 
     public OpenFileTableEntry() {

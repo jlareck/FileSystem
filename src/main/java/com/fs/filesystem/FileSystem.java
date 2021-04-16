@@ -225,6 +225,22 @@ public class FileSystem {
 
     }
 
+    /**
+     * Sequentially reads a number of bytes from the specified file into main memory.
+     * Reading begins with the current position in the file.
+     *
+     * - Compute the position within the read/write buffer that corresponds to the current
+     * position within the file
+     *
+     * - Start copying bytes from the buffer into the specified main memory location untill:
+     *   - the desired count or the end of the file is reached
+     *   - the end of the buffer is reached
+     *
+     * @param OFTEntryIndex index of file in openFileTable.
+     * @param memArea       starting main memory address.
+     * @param count         number of bytes to be read.
+     * @return int    number of bytes read.
+     */
     public int read(int OFTEntryIndex, ByteBuffer memArea, int count) {
         if(OFTEntryIndex <= 0 || OFTEntryIndex >= OpenFileTable.OFT_NUMBER_OF_ENTRIES) {
             System.out.println("ERROR! WRONG INDEX");
@@ -251,20 +267,20 @@ public class FileSystem {
             return -1;
         }
 
-        // find current position inside RWBuffer
+        // find current position inside readWriteBuffer
         int currentBufferPosition = entry.currentPositionInFile % ioSystem.getlDisk().BLOCK_LENGTH;
         int currentMemoryPosition = 0;
 
         int counter = 0;
 
-        // read count bytes starting at RWBuffer[currentBufferPosition] to memArea
+        // read count bytes starting at readWriteBuffer[currentBufferPosition] to memArea
         for (int i = 0; i < count && i < memArea.array().length; i++) {
-            // if end of file -> return number of bytes read
+            // if end of file, then return number of bytes read
             if (entry.currentPositionInFile == fileDescriptor.fileLength) {
                 System.out.println("The end of the file is reached");
                 return counter;
             } else {
-                // if end of block -> write buffer to the disk, then read next block to RWBuffer
+                // if end of block, then write buffer to the disk, then read next block to RWBuffer
                 if (currentBufferPosition == ioSystem.getlDisk().BLOCK_LENGTH) {
 
                     writeBuffer(entry, fileDescriptor);
@@ -278,14 +294,28 @@ public class FileSystem {
                 counter++;
                 currentBufferPosition++;
                 currentMemoryPosition++;
+                // entry.currentPositionInFile - points to first byte after last accessed
                 entry.currentPositionInFile++;
             }
         }
 
-        // entry.currentPosition - points to first byte after last accessed
         return counter;
     }
 
+    /**
+     * Sequentially writes a number of bytes from main memory into the specified file.
+     * Writing begins with the current position in the file.
+     *
+     * The data is transferred from main memory into
+     * the buffer until the desired byte count is satisfied. If the end of buffer is reached:
+     *  - the buffer is written to disk
+     *  - the file descriptor and the bitmap are then updated to reflect the new block
+     *
+     * @param OFTEntryIndex index of file in openFileTable.
+     * @param memArea       starting main memory address.
+     * @param count         number of bytes to be written.
+     * @return int    number of bytes written to file.
+     */
     private int write(int OFTEntryIndex, byte[] memArea, int count) {
         if(OFTEntryIndex <= 0 || OFTEntryIndex >= OpenFileTable.OFT_NUMBER_OF_ENTRIES) {
             System.out.println("ERROR! WRONG INDEX");
@@ -308,6 +338,7 @@ public class FileSystem {
             return -1;
         }
 
+        //if currentPosition == end of file
         if (entry.currentPositionInFile == 3 * ioSystem.getlDisk().BLOCK_LENGTH) {
             return 0;
         }
@@ -316,7 +347,7 @@ public class FileSystem {
             return -1;
         }
 
-        // find current position inside RWBffer
+        // find current position inside readWriteBffer
         int currentBufferPosition = entry.currentPositionInFile % ioSystem.getlDisk().BLOCK_LENGTH;
         int currentMemoryPosition = 0;
 
@@ -360,10 +391,22 @@ public class FileSystem {
             entry.currentPositionInFile++;
         }
 
-        // OFTEntry.currentPosition - points to first byte after last accessed
         return counter;
     }
 
+    /**
+     * Move the current position of the file to new position.
+     *
+     * Set current position to new position
+     *
+     * If the new position is not within the current data block:
+     * – write the buffer into the appropriate block on disk
+     * – read the new data block from disk into the buffer
+     *
+     * @param OFTEntryIndex index of file in openFileSystem.
+     * @param pos           new position, specifies the number of bytes from the beginning of the file
+     * @return int    status.
+     */
     public int seek(int OFTEntryIndex, int pos) {
         if(OFTEntryIndex <= 0 || OFTEntryIndex >= OpenFileTable.OFT_NUMBER_OF_ENTRIES) {
             System.out.println("ERROR! WRONG INDEX");
@@ -376,7 +419,10 @@ public class FileSystem {
             return -1;
         }
 
-        openFileTable.entries[OFTEntryIndex].currentPositionInFile = pos;
+        OpenFileTableEntry entry = openFileTable.entries[OFTEntryIndex];
+
+        entry.currentPositionInFile = pos;
+        writeBuffer(entry, fileDescriptor);
 
         return 1;
     }
