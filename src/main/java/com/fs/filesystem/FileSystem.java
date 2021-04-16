@@ -286,6 +286,101 @@ public class FileSystem {
         return counter;
     }
 
+    private int write(int OFTEntryIndex, byte[] memArea, int count) {
+        if(OFTEntryIndex <= 0 || OFTEntryIndex >= OpenFileTable.OFT_NUMBER_OF_ENTRIES) {
+            System.out.println("ERROR! WRONG INDEX");
+            return -1;
+        }
+        if (count <= 0) {
+            return -1;
+        }
+
+        OpenFileTableEntry entry = openFileTable.entries[OFTEntryIndex];
+
+        if(entry == null) {
+            System.out.println("ERROR! WRONG INDEX");
+            return -1;
+        }
+
+        FileDescriptor fileDescriptor = descriptors[entry.fileDescriptorIndex];
+
+        if(fileDescriptor.fileLength == 0) {
+            return -1;
+        }
+
+        if (entry.currentPositionInFile == 3 * ioSystem.getlDisk().BLOCK_LENGTH) {
+            return 0;
+        }
+
+        if (writeBuffer(entry, fileDescriptor) == -1) {
+            return -1;
+        }
+
+        // find current position inside RWBffer
+        int currentBufferPosition = entry.currentPositionInFile % ioSystem.getlDisk().BLOCK_LENGTH;
+        int currentMemoryPosition = 0;
+
+        int counter = 0;
+
+        if (fileDescriptor.fileLength == 0) {
+            int newDiskBlock = -1;
+            for (int i = 8; i < 64; i++) {
+                if (!bitmap.get(i)) {
+                    newDiskBlock = i;
+                    break;
+                }
+            }
+            entry.fileBlockInBuffer = 0;
+            fileDescriptor.fileContentsBlocksIndexes[entry.fileBlockInBuffer] = newDiskBlock;
+            fileDescriptor.fileLength += ioSystem.getlDisk().BLOCK_LENGTH;
+            bitmap.set(newDiskBlock, true);
+        }
+
+        // write count bytes from memArea to ReadWriteBuffer starting at currentBufferPosition
+        for (int i = 0; i < count && i < memArea.length; i++) {
+
+            // if end of buffer, check if we can load next block (allocate or read, but previously write that buffer to the disk)
+            if (currentBufferPosition == ioSystem.getlDisk().BLOCK_LENGTH) {
+                if (entry.fileBlockInBuffer < 2) {
+                    currentBufferPosition = 0;
+                    writeBuffer(entry, fileDescriptor);
+                } else {
+                    break;
+                }
+            }
+
+            // write 1 byte to file
+            entry.readWriteBuffer[currentBufferPosition] = memArea[currentMemoryPosition];
+            entry.bufferModified = true;
+
+            // update positions, writtenCount
+            counter++;
+            currentBufferPosition++;
+            currentMemoryPosition++;
+            entry.currentPositionInFile++;
+        }
+
+        // OFTEntry.currentPosition - points to first byte after last accessed
+        return counter;
+    }
+
+    public int seek(int OFTEntryIndex, int pos) {
+        if(OFTEntryIndex <= 0 || OFTEntryIndex >= OpenFileTable.OFT_NUMBER_OF_ENTRIES) {
+            System.out.println("ERROR! WRONG INDEX");
+            return -1;
+        }
+
+        FileDescriptor fileDescriptor = descriptors[openFileTable.entries[OFTEntryIndex].fileDescriptorIndex];
+
+        if (pos > fileDescriptor.fileLength || pos < 0) {
+            return -1;
+        }
+
+        openFileTable.entries[OFTEntryIndex].currentPositionInFile = pos;
+
+        return 1;
+    }
+
     private int writeBuffer(OpenFileTableEntry entry, FileDescriptor fileDescriptor) {
         if (entry.fileBlockInBuffer == -1) {
             return -1;
