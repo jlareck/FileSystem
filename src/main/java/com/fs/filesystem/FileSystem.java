@@ -4,6 +4,7 @@ import com.fs.iosystem.IOSystem;
 import com.fs.ldisk.LDisk;
 import com.fs.utils.FileSystemConfig;
 
+import javax.management.Descriptor;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
@@ -514,6 +515,8 @@ public class FileSystem {
         ioSystem.writeBlock(0, bufferBytes);
     }
 
+
+
     public void readDescriptorsFromDisk() {
         for (int i = 1; i <= FileSystemConfig.NUMBER_OF_DESCRIPTOR_BLOCKS; i++) {
             ByteBuffer diskBlockBuffer = ByteBuffer.allocate(LDisk.BLOCK_LENGTH);
@@ -537,6 +540,52 @@ public class FileSystem {
                 }
             }
         }
+    }
+// заповнити весь блок від 0 до 63, кожна ентря з директорії займає
+    public int saveDirectoryToDisk() {
+        FileDescriptor fileDescriptor = descriptors[openFileTable.entries[0].fileDescriptorIndex];
+        int numberOfDirectoryBlocks = 0;
+        for (int i = 0; i < 3; i++) {
+            if (fileDescriptor.fileContentsBlocksIndexes[i] != -1) {
+                numberOfDirectoryBlocks++;
+            }
+        }
+        int maximumDirectoryEntriesPerBlock = 8;
+        if (directory.listOfEntries.size() > maximumDirectoryEntriesPerBlock * numberOfDirectoryBlocks) {
+            return FileSystemConfig.ERROR;
+        }
+        int currentBufferPosition = 0;
+
+
+        int indexForFileContentsBlocksIndexesArray = 0;
+        for (int i = 0; i < directory.listOfEntries.size(); i++) {
+
+            for (int j = 0; j < 4; j++) {
+                if (j < directory.listOfEntries.get(i).fileName.length()) {
+                    openFileTable.entries[0].readWriteBuffer[currentBufferPosition] = (byte) directory.listOfEntries.get(i).fileName.charAt(j);
+                }
+                else {
+                    openFileTable.entries[0].readWriteBuffer[currentBufferPosition] = '\0';
+                }
+                currentBufferPosition++;
+            }
+            byte[] integerToBytes = ByteBuffer.allocate(4).putInt(directory.listOfEntries.get(i).fileDescriptorIndex).array();
+            for (int k = 0; k < 4; k++) {
+                openFileTable.entries[0].readWriteBuffer[currentBufferPosition] = integerToBytes[k];
+                currentBufferPosition++;
+            }
+            if ((i+1) % maximumDirectoryEntriesPerBlock == 0) {
+
+                while (fileDescriptor.fileContentsBlocksIndexes[indexForFileContentsBlocksIndexesArray] == -1) {
+                    indexForFileContentsBlocksIndexesArray++;
+                }
+                ioSystem.writeBlock(fileDescriptor.fileContentsBlocksIndexes[indexForFileContentsBlocksIndexesArray], openFileTable.entries[0].readWriteBuffer);
+                indexForFileContentsBlocksIndexesArray++;
+                currentBufferPosition = 0;
+            }
+
+        }
+        return FileSystemConfig.SUCCESS;
     }
 
     public void saveDescriptorsToDisk() {
