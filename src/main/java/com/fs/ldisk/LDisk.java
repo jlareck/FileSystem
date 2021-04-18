@@ -2,7 +2,9 @@ package com.fs.ldisk;
 
 import com.fs.utils.FileSystemConfig;
 
-public class LDisk {
+import java.io.Serializable;
+
+public class LDisk implements Serializable {
     public byte[][] bytes;
 
     public LDisk() {

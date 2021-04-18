@@ -3,6 +3,10 @@ package com.fs.iosystem;
 import com.fs.ldisk.LDisk;
 import com.fs.utils.FileSystemConfig;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 
 public class IOSystem {
@@ -58,4 +62,43 @@ public class IOSystem {
             lDisk.bytes[blockIndex][k] = buffer[k];
         }
     }
+
+    /**
+     * saving lDisk to txt file
+     */
+    public void saveDiskToFile() {
+        String filepath = "disk.txt";
+        try {
+            FileOutputStream fileOut = new FileOutputStream(filepath);
+            ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+            objectOut.writeObject(lDisk);
+            objectOut.close();
+            System.out.println("The object was succesfully written to a file");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * reading disk from txt file
+     *
+     */
+    public LDisk readDiskFromFile() {
+        try {
+            String filepath = "disk.txt";
+            FileInputStream fileIn = new FileInputStream(filepath);
+            ObjectInputStream objectIn = new ObjectInputStream(fileIn);
+
+            LDisk obj = (LDisk) objectIn.readObject();
+
+            System.out.println("The Object has been read from the file");
+            objectIn.close();
+            return obj;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
 }
