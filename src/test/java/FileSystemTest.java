@@ -1,4 +1,5 @@
 
+import com.fs.filesystem.Directory;
 import com.fs.filesystem.FileSystem;
 import com.fs.iosystem.IOSystem;
 import com.fs.ldisk.LDisk;
@@ -152,6 +153,17 @@ public class FileSystemTest {
         //and now these bits are updated
         assertTrue(bitMapOnDisk.get(9));
         assertTrue(bitMapOnDisk.get(10));
+    }
+    @Test
+    void saveDirectoryToDisk() {
+        fileSystem.create("F1");
+        fileSystem.create("F2");
+        fileSystem.saveDirectoryToDisk();
+        fileSystem.directory = new Directory();
+        fileSystem.readDirectoryFromDisk();
+        assertEquals("F1", fileSystem.directory.listOfEntries.get(0).fileName);
+        assertEquals("F2", fileSystem.directory.listOfEntries.get(1).fileName);
+
     }
 
 

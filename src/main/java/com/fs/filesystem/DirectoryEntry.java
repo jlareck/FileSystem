@@ -1,8 +1,8 @@
 package com.fs.filesystem;
 
 public class DirectoryEntry {
-    String fileName;
-    int fileDescriptorIndex;
+    public String fileName;
+    public int fileDescriptorIndex;
 
     public DirectoryEntry(String fileName, int fileDescriptorIndex) {
         this.fileDescriptorIndex = fileDescriptorIndex;
