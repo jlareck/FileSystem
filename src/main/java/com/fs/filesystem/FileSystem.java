@@ -49,6 +49,9 @@ public class FileSystem {
         openFileTable.entries[0] = new OpenFileTableEntry();
         // OFT first entry for directory
         openFileTable.entries[0].fileDescriptorIndex = 0;
+
+        saveDescriptorsToDisk();
+        saveDirectoryToDisk();
     }
 
     /**
@@ -142,6 +145,9 @@ public class FileSystem {
      *
      */
     public int create(String fileName) {
+        readDescriptorsFromDisk();
+        readDirectoryFromDisk();
+
         if (fileName.length() < 1 || fileName.length() > FileSystemConfig.MAXIMUM_FILE_NAME_LENGTH) {
             System.out.println("ERROR! File name is larger than maximum length or it is less than 1");
             return FileSystemConfig.ERROR;
@@ -165,18 +171,29 @@ public class FileSystem {
             System.out.println("ERROR! THERE IS NO FREE DESCRIPTOR IN THE FILESYSTEM");
             return FileSystemConfig.ERROR;
         }
-
+        if (directory.listOfEntries.size() % FileSystemConfig.MAXIMUM_DIRECTORY_ENTRIES_PER_BLOCK == 0 && directory.listOfEntries.size() > 0) {
+            int freeBlockIndex = searchFreeDataBlock(bitmap);
+            bitmap.set(freeBlockIndex,true);
+            saveBitMapToDisk(bitmap);
+            for (int i = 0; i < descriptors[0].fileContentsBlocksIndexes.length; i++) {
+                if (descriptors[0].fileContentsBlocksIndexes[i] == -1) {
+                    descriptors[0].fileContentsBlocksIndexes[i] = freeBlockIndex;
+                    break;
+                }
+            }
+        }
         directory.addEntryToDirectory(fileName, freeDescriptorIndex);
 
         int freeBlockIndex = searchFreeDataBlock(bitmap);
+
+
         bitmap.set(freeBlockIndex,true);
-        saveBitMapToDisk(bitmap);
-        // TODO: maybe it is better to read bitmap from disk before searching free block
+
         descriptors[freeDescriptorIndex] = new FileDescriptor(0, new int[]{freeBlockIndex,-1,-1});
         System.out.println("The file " + fileName+ " has been created successfully");
-        // TODO: save directory and desriptor to disk
-
-        //saveDescriptorsToDisk();
+        saveBitMapToDisk(bitmap);
+        saveDirectoryToDisk();
+        saveDescriptorsToDisk();
         return FileSystemConfig.SUCCESS;
     }
     public int searchFreeDataBlock(BitSet bits) {
@@ -202,6 +219,9 @@ public class FileSystem {
      *
      */
     public int destroy(String fileName) {
+
+        readDirectoryFromDisk();
+        readDescriptorsFromDisk();
         if (fileName.length() == 0 || fileName.length() > FileSystemConfig.MAXIMUM_FILE_NAME_LENGTH) {
             System.out.println("ERROR! File name is larger than maximum length or it is equal to zero");
             return FileSystemConfig.ERROR;
@@ -220,9 +240,25 @@ public class FileSystem {
             }
         }
         // TODO: save directory to disk
+
+
+
         directory.listOfEntries.remove(findDirectoryEntryIndex(descriptorIndex));
         descriptors[descriptorIndex] = null;
         System.out.println("The file " + fileName+ " has been destroyed successfully");
+        if (directory.listOfEntries.size() % FileSystemConfig.MAXIMUM_DIRECTORY_ENTRIES_PER_BLOCK == 0 && directory.listOfEntries.size() > 0) {
+
+            for (int i = descriptors[0].fileContentsBlocksIndexes.length-1; i >= 0; i--) {
+                if (descriptors[0].fileContentsBlocksIndexes[i] != -1) {
+                    bitmap.set(descriptors[0].fileContentsBlocksIndexes[i], false);
+                    descriptors[0].fileContentsBlocksIndexes[i] = -1;
+                    break;
+                }
+            }
+        }
+        saveDirectoryToDisk();
+        saveDescriptorsToDisk();
+        saveBitMapToDisk(bitmap);
         return FileSystemConfig.SUCCESS;
 
     }
@@ -543,6 +579,7 @@ public class FileSystem {
         }
     }
     public int readDirectoryFromDisk() {
+        directory = new Directory();
        // readDescriptorsFromDisk();
         FileDescriptor fileDescriptor = descriptors[openFileTable.entries[0].fileDescriptorIndex];
         int maximumDirectoryEntriesPerBlock = 8;
@@ -555,14 +592,14 @@ public class FileSystem {
                 openFileTable.entries[0].readWriteBuffer = buffer.array();
                 for (int j = 0; j < maximumDirectoryEntriesPerBlock; j++) {
                    // openFileTable.entries
-                    if (openFileTable.entries[0].readWriteBuffer[i] == 0) {
+                    if (openFileTable.entries[0].readWriteBuffer[currentPosition] == 0) {
                         check = false;
                         break;
                     }
                     String fileName = "";
                     for (int k = 0; k < 4; k++, currentPosition++) {
                         char charFromBuffer = (char) openFileTable.entries[0].readWriteBuffer[currentPosition];
-                        if (charFromBuffer != '#') {
+                        if (charFromBuffer != '\0') {
                             fileName += (char) openFileTable.entries[0].readWriteBuffer[currentPosition];
                         }
                     }
@@ -570,6 +607,9 @@ public class FileSystem {
                     currentPosition += 4;
                     int fileDescriptorIndex = ByteBuffer.wrap(integer).getInt();
                     directory.addEntryToDirectory(fileName, fileDescriptorIndex);
+                }
+                if (currentPosition == LDisk.BLOCK_LENGTH) {
+                    currentPosition = 0;
                 }
             }
         }
@@ -589,9 +629,10 @@ public class FileSystem {
         }
         int currentBufferPosition = 0;
 
-
+        boolean check = true;
         int indexForFileContentsBlocksIndexesArray = 0;
         for (int i = 0; i < directory.listOfEntries.size(); i++) {
+            check = true;
             if (openFileTable.entries[0].readWriteBuffer == null) {
                 openFileTable.entries[0].readWriteBuffer = new byte[LDisk.BLOCK_LENGTH];
             }
@@ -600,7 +641,7 @@ public class FileSystem {
                     openFileTable.entries[0].readWriteBuffer[currentBufferPosition] = (byte) directory.listOfEntries.get(i).fileName.charAt(j);
                 }
                 else {
-                    openFileTable.entries[0].readWriteBuffer[currentBufferPosition] = (byte)'#';
+                    openFileTable.entries[0].readWriteBuffer[currentBufferPosition] = (byte)'\0';
                 }
                 currentBufferPosition++;
             }
@@ -618,9 +659,12 @@ public class FileSystem {
                 indexForFileContentsBlocksIndexesArray++;
                 currentBufferPosition = 0;
                 openFileTable.entries[0].readWriteBuffer = null;
+                check = false;
             }
         }
-        ioSystem.writeBlock(fileDescriptor.fileContentsBlocksIndexes[indexForFileContentsBlocksIndexesArray], openFileTable.entries[0].readWriteBuffer);
+        if (check) {
+            ioSystem.writeBlock(fileDescriptor.fileContentsBlocksIndexes[indexForFileContentsBlocksIndexesArray], openFileTable.entries[0].readWriteBuffer);
+        }
         return FileSystemConfig.SUCCESS;
     }
 

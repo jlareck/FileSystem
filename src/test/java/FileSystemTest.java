@@ -117,12 +117,6 @@ public class FileSystemTest {
         assertNull(fileSystem.descriptors[1]);
         fileSystem.readDescriptorsFromDisk();
         assertNotNull(fileSystem.descriptors[1]);
-
-        fileSystem.destroy("F2");
-        fileSystem.saveDescriptorsToDisk();
-        fileSystem.create("F7");
-        fileSystem.readDescriptorsFromDisk();
-        assertNull(fileSystem.descriptors[2]);
     }
 
     @Test
@@ -156,13 +150,17 @@ public class FileSystemTest {
     }
     @Test
     void saveDirectoryToDisk() {
-        fileSystem.create("F1");
-        fileSystem.create("F2");
+        int maxNumberOfFiles = 23;
+        for (int i = 0; i < maxNumberOfFiles; i++) {
+            fileSystem.create("F" + i);
+        }
         fileSystem.saveDirectoryToDisk();
         fileSystem.directory = new Directory();
+        assertEquals(0, fileSystem.directory.listOfEntries.size());
         fileSystem.readDirectoryFromDisk();
-        assertEquals("F1", fileSystem.directory.listOfEntries.get(0).fileName);
-        assertEquals("F2", fileSystem.directory.listOfEntries.get(1).fileName);
+        for (int i = 0; i < maxNumberOfFiles; i++) {
+            assertEquals("F"+i, fileSystem.directory.listOfEntries.get(i).fileName);
+        }
 
     }
 
