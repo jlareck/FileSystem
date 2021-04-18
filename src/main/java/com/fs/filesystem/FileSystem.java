@@ -51,6 +51,9 @@ public class FileSystem {
         saveDescriptorsToDisk();
         saveDirectoryToDisk();
     }
+    /**
+       initializing file system from disk
+     */
     public FileSystem(LDisk ldisk) {
         ByteBuffer diskBlockBuffer = ByteBuffer.allocate(FileSystemConfig.BLOCK_LENGTH);
 

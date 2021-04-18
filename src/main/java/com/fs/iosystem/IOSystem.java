@@ -63,6 +63,9 @@ public class IOSystem {
         }
     }
 
+    /**
+     * saving lDisk to txt file
+     */
     public void saveDiskToFile() {
         String filepath = "disk.txt";
         try {
@@ -75,6 +78,11 @@ public class IOSystem {
             ex.printStackTrace();
         }
     }
+
+    /**
+     * reading disk from txt file
+     *
+     */
     public LDisk readDiskFromFile() {
         try {
             String filepath = "disk.txt";
