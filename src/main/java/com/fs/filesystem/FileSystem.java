@@ -1,6 +1,7 @@
 package com.fs.filesystem;
 
 import com.fs.iosystem.IOSystem;
+import com.fs.ldisk.LDisk;
 import com.fs.utils.FileSystemConfig;
 
 import java.nio.ByteBuffer;
@@ -49,6 +50,25 @@ public class FileSystem {
 
         saveDescriptorsToDisk();
         saveDirectoryToDisk();
+    }
+    public FileSystem(LDisk ldisk) {
+        ByteBuffer diskBlockBuffer = ByteBuffer.allocate(FileSystemConfig.BLOCK_LENGTH);
+
+        byte[] blockBytes = diskBlockBuffer.array();
+        byte[] bitMapBytes = Arrays.copyOfRange(blockBytes, 0, FileSystemConfig.BITMAP_LENGTH_ON_DISK);
+        BitSet bitMapOnDisk = BitSet.valueOf(bitMapBytes);
+        this.ioSystem = new IOSystem(ldisk);
+        ioSystem.readBlock(0, diskBlockBuffer);
+        descriptors = new FileDescriptor[FileSystemConfig.NUMBER_OF_DESCRIPTORS];
+        blockBytes = diskBlockBuffer.array();
+        bitMapBytes = Arrays.copyOfRange(blockBytes, 0, FileSystemConfig.BITMAP_LENGTH_ON_DISK);
+        bitmap = BitSet.valueOf(bitMapBytes);
+        openFileTable = new OpenFileTable();
+        openFileTable.entries[0] = new OpenFileTableEntry();
+        // OFT first entry for directory
+        openFileTable.entries[0].fileDescriptorIndex = 0;
+        readDescriptorsFromDisk();
+        readDirectoryFromDisk();
     }
 
     /**
@@ -686,4 +706,5 @@ public class FileSystem {
             ioSystem.writeBlock(i, diskBlock.array());
         }
     }
+
 }

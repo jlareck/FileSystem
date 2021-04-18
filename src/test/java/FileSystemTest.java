@@ -152,15 +152,23 @@ public class FileSystemTest {
         for (int i = 0; i < maxNumberOfFiles; i++) {
             fileSystem.create("F" + i);
         }
-        fileSystem.saveDirectoryToDisk();
+
         fileSystem.directory = new Directory();
         assertEquals(0, fileSystem.directory.listOfEntries.size());
         fileSystem.readDirectoryFromDisk();
         for (int i = 0; i < maxNumberOfFiles; i++) {
             assertEquals("F"+i, fileSystem.directory.listOfEntries.get(i).fileName);
         }
-
     }
 
 
+    @Test
+    void saveDiskToFile() {
+        fileSystem.create("file");
+        fileSystem.ioSystem.saveDiskToFile();
+        LDisk disk = fileSystem.ioSystem.readDiskFromFile();
+        FileSystem newFileSystem = new FileSystem(disk);
+        assertEquals(fileSystem.searchFreeDataBlock(fileSystem.bitmap), newFileSystem.searchFreeDataBlock(newFileSystem.bitmap));
+        assertEquals(fileSystem.directory.listOfEntries.get(0).fileName, newFileSystem.directory.listOfEntries.get(0).fileName);
+    }
 }
