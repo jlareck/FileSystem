@@ -1,4 +1,5 @@
 
+import com.fs.filesystem.Directory;
 import com.fs.filesystem.FileSystem;
 import com.fs.iosystem.IOSystem;
 import com.fs.ldisk.LDisk;
@@ -7,9 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.List;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -116,17 +115,11 @@ public class FileSystemTest {
         assertNull(fileSystem.descriptors[1]);
         fileSystem.readDescriptorsFromDisk();
         assertNotNull(fileSystem.descriptors[1]);
-
-        fileSystem.destroy("F2");
-        fileSystem.saveDescriptorsToDisk();
-        fileSystem.create("F7");
-        fileSystem.readDescriptorsFromDisk();
-        assertNull(fileSystem.descriptors[2]);
     }
 
     @Test
     void saveBitMapToDisk() {
-        ByteBuffer diskBlockBuffer = ByteBuffer.allocate(LDisk.BLOCK_LENGTH);
+        ByteBuffer diskBlockBuffer = ByteBuffer.allocate(FileSystemConfig.BLOCK_LENGTH);
         fileSystem.ioSystem.readBlock(0, diskBlockBuffer);
 
         byte[] blockBytes = diskBlockBuffer.array();
@@ -152,6 +145,21 @@ public class FileSystemTest {
         //and now these bits are updated
         assertTrue(bitMapOnDisk.get(9));
         assertTrue(bitMapOnDisk.get(10));
+    }
+    @Test
+    void saveDirectoryToDisk() {
+        int maxNumberOfFiles = 23;
+        for (int i = 0; i < maxNumberOfFiles; i++) {
+            fileSystem.create("F" + i);
+        }
+        fileSystem.saveDirectoryToDisk();
+        fileSystem.directory = new Directory();
+        assertEquals(0, fileSystem.directory.listOfEntries.size());
+        fileSystem.readDirectoryFromDisk();
+        for (int i = 0; i < maxNumberOfFiles; i++) {
+            assertEquals("F"+i, fileSystem.directory.listOfEntries.get(i).fileName);
+        }
+
     }
 
 
