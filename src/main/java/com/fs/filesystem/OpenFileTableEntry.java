@@ -1,6 +1,6 @@
 package com.fs.filesystem;
 
-import com.fs.ldisk.LDisk;
+import com.fs.utils.FileSystemConfig;
 
 public class OpenFileTableEntry {
     /**
@@ -25,7 +25,7 @@ public class OpenFileTableEntry {
     int fileBlockInBuffer;
 
     public OpenFileTableEntry() {
-        readWriteBuffer = new byte[LDisk.BLOCK_LENGTH];
+        readWriteBuffer = new byte[FileSystemConfig.BLOCK_LENGTH];
         currentPositionInFile = 0;
         fileDescriptorIndex = -1;
         bufferModified = false;
@@ -36,13 +36,13 @@ public class OpenFileTableEntry {
      * @return Number of file data block that our entry is currently buffering
      */
     public int getCurrentDataBlockPosition() {
-        return currentPositionInFile / LDisk.BLOCK_LENGTH;
+        return currentPositionInFile / FileSystemConfig.BLOCK_LENGTH;
     }
 
     /**
      * @return Current position in readWriteBuffer
      */
     public int getCurrentBufferPosition() {
-        return currentPositionInFile % LDisk.BLOCK_LENGTH;
+        return currentPositionInFile % FileSystemConfig.BLOCK_LENGTH;
     }
 }

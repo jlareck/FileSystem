@@ -1,6 +1,7 @@
 package com.fs.iosystem;
 
 import com.fs.ldisk.LDisk;
+import com.fs.utils.FileSystemConfig;
 
 import java.nio.ByteBuffer;
 
@@ -25,14 +26,14 @@ public class IOSystem {
      * @param buffer main memory, we'll store red block there
      */
     public void readBlock(int blockIndex, ByteBuffer buffer) {
-        if (0 > blockIndex || blockIndex >= LDisk.BLOCKS_AMOUNT) {
+        if (0 > blockIndex || blockIndex >= FileSystemConfig.BLOCKS_AMOUNT) {
             throw new IllegalArgumentException("Wrong block index for reading");
         }
-        if (buffer.array().length != LDisk.BLOCK_LENGTH) {
+        if (buffer.array().length != FileSystemConfig.BLOCK_LENGTH) {
             throw new IllegalArgumentException("Buffer length must be equal to block length");
         }
 
-        for (int k = 0; k < LDisk.BLOCK_LENGTH; k++) {
+        for (int k = 0; k < FileSystemConfig.BLOCK_LENGTH; k++) {
             buffer.put(k, lDisk.bytes[blockIndex][k]);
         }
     }
@@ -46,14 +47,14 @@ public class IOSystem {
      * @param buffer array of bytes to write into disk
      */
     public void writeBlock(int blockIndex, byte[] buffer) {
-        if (0 > blockIndex || blockIndex >= LDisk.BLOCKS_AMOUNT) {
+        if (0 > blockIndex || blockIndex >= FileSystemConfig.BLOCKS_AMOUNT) {
             throw new IllegalArgumentException("Wrong block index for reading");
         }
-        if (buffer.length != LDisk.BLOCK_LENGTH) {
+        if (buffer.length != FileSystemConfig.BLOCK_LENGTH) {
             throw new IllegalArgumentException("Buffer length must be equal to block length");
         }
 
-        for (int k = 0; k < LDisk.BLOCK_LENGTH; k++) {
+        for (int k = 0; k < FileSystemConfig.BLOCK_LENGTH; k++) {
             lDisk.bytes[blockIndex][k] = buffer[k];
         }
     }

@@ -8,9 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.List;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -121,7 +119,7 @@ public class FileSystemTest {
 
     @Test
     void saveBitMapToDisk() {
-        ByteBuffer diskBlockBuffer = ByteBuffer.allocate(LDisk.BLOCK_LENGTH);
+        ByteBuffer diskBlockBuffer = ByteBuffer.allocate(FileSystemConfig.BLOCK_LENGTH);
         fileSystem.ioSystem.readBlock(0, diskBlockBuffer);
 
         byte[] blockBytes = diskBlockBuffer.array();

@@ -1,11 +1,11 @@
 package com.fs.ldisk;
 
+import com.fs.utils.FileSystemConfig;
+
 public class LDisk {
-    public static final int BLOCK_LENGTH = 64;
-    public static final int BLOCKS_AMOUNT = 64;
     public byte[][] bytes;
 
     public LDisk() {
-        bytes = new byte[BLOCKS_AMOUNT][BLOCK_LENGTH];
+        bytes = new byte[FileSystemConfig.BLOCKS_AMOUNT][FileSystemConfig.BLOCK_LENGTH];
     }
 }
