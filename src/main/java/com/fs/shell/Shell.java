@@ -218,7 +218,8 @@ public class Shell {
     }
 
     private void directory() {
-        //TODO: Create method
+        System.out.println("List of all files.");
+        fileSystem.listDirectory();
     }
 
     private void init(String diskCont) {
