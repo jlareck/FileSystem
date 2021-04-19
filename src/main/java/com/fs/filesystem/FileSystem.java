@@ -580,7 +580,18 @@ public class FileSystem {
         ioSystem.writeBlock(0, bufferBytes);
     }
 
+    /**
+     * Returns BitMap stored on disk
+     */
+    public BitSet readBitMapFromDisk() {
+        ByteBuffer diskBlockBuffer = ByteBuffer.allocate(FileSystemConfig.BLOCK_LENGTH);
+        ioSystem.readBlock(0, diskBlockBuffer);
 
+        byte[] blockBytes = diskBlockBuffer.array();
+        byte[] bitMapBytes = Arrays.copyOfRange(blockBytes, 0, FileSystemConfig.BITMAP_LENGTH_ON_DISK);
+
+        return BitSet.valueOf(bitMapBytes);
+    }
 
     public void readDescriptorsFromDisk() {
         for (int i = 1; i <= FileSystemConfig.NUMBER_OF_DESCRIPTOR_BLOCKS; i++) {

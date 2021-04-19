@@ -119,13 +119,7 @@ public class FileSystemTest {
 
     @Test
     void saveBitMapToDisk() {
-        ByteBuffer diskBlockBuffer = ByteBuffer.allocate(FileSystemConfig.BLOCK_LENGTH);
-        fileSystem.ioSystem.readBlock(0, diskBlockBuffer);
-
-        byte[] blockBytes = diskBlockBuffer.array();
-        byte[] bitMapBytes = Arrays.copyOfRange(blockBytes, 0, FileSystemConfig.BITMAP_LENGTH_ON_DISK);
-
-        BitSet bitMapOnDisk = BitSet.valueOf(bitMapBytes);
+        BitSet bitMapOnDisk = fileSystem.readBitMapFromDisk();
 
         //previously bits were false
         assertFalse(bitMapOnDisk.get(9));
@@ -138,10 +132,7 @@ public class FileSystemTest {
 
         fileSystem.saveBitMapToDisk(bitMap);
 
-        fileSystem.ioSystem.readBlock(0, diskBlockBuffer);
-        blockBytes = diskBlockBuffer.array();
-        bitMapBytes = Arrays.copyOfRange(blockBytes, 0, FileSystemConfig.BITMAP_LENGTH_ON_DISK);
-        bitMapOnDisk = BitSet.valueOf(bitMapBytes);
+        bitMapOnDisk = fileSystem.readBitMapFromDisk();
         //and now these bits are updated
         assertTrue(bitMapOnDisk.get(9));
         assertTrue(bitMapOnDisk.get(10));
