@@ -66,10 +66,9 @@ public class IOSystem {
     /**
      * saving lDisk to txt file
      */
-    public void saveDiskToFile() {
-        String filepath = "disk.txt";
+    public void saveDiskToFile(String filePath) {
         try {
-            FileOutputStream fileOut = new FileOutputStream(filepath);
+            FileOutputStream fileOut = new FileOutputStream(filePath);
             ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
             objectOut.writeObject(lDisk);
             objectOut.close();
@@ -83,10 +82,9 @@ public class IOSystem {
      * reading disk from txt file
      *
      */
-    public LDisk readDiskFromFile() {
+    public LDisk readDiskFromFile(String filePath) {
         try {
-            String filepath = "disk.txt";
-            FileInputStream fileIn = new FileInputStream(filepath);
+            FileInputStream fileIn = new FileInputStream(filePath);
             ObjectInputStream objectIn = new ObjectInputStream(fileIn);
 
             LDisk obj = (LDisk) objectIn.readObject();

@@ -165,8 +165,8 @@ public class FileSystemTest {
     @Test
     void saveDiskToFile() {
         fileSystem.create("file");
-        fileSystem.ioSystem.saveDiskToFile();
-        LDisk disk = fileSystem.ioSystem.readDiskFromFile();
+        fileSystem.ioSystem.saveDiskToFile("disk.txt");
+        LDisk disk = fileSystem.ioSystem.readDiskFromFile("disk.txt");
         FileSystem newFileSystem = new FileSystem(disk);
         assertEquals(fileSystem.searchFreeDataBlock(fileSystem.bitmap), newFileSystem.searchFreeDataBlock(newFileSystem.bitmap));
         assertEquals(fileSystem.directory.listOfEntries.get(0).fileName, newFileSystem.directory.listOfEntries.get(0).fileName);

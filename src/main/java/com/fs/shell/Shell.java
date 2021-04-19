@@ -4,6 +4,7 @@ import com.fs.filesystem.FileSystem;
 import com.fs.iosystem.IOSystem;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -228,10 +229,15 @@ public class Shell {
         File f = new File(diskCont);
         if (f.exists()) {
             //TODO: Open directory
-            //fileSystem = new FileSystem(ioSystem, diskCont);
+            fileSystem = new FileSystem(ioSystem.readDiskFromFile(diskCont));
             System.out.println("Disk restored.");
         } else {
             //TODO: Create and open directory
+            try {
+                f.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             fileSystem = new FileSystem(ioSystem);
             System.out.println("Disk initialized.");
         }
@@ -239,8 +245,9 @@ public class Shell {
 
     private void save(String diskCont) {
         //TODO: add closing all files before saving
+        fileSystem.closeAllFiles();
         //TODO: fix using of the parameter
-        fileSystem.ioSystem.saveDiskToFile();
+        fileSystem.ioSystem.saveDiskToFile(diskCont);
         System.out.println("Disk saved! Congratulations!");
     }
 

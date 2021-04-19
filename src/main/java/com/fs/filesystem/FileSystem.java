@@ -59,7 +59,7 @@ public class FileSystem {
 
         byte[] blockBytes = diskBlockBuffer.array();
         byte[] bitMapBytes = Arrays.copyOfRange(blockBytes, 0, FileSystemConfig.BITMAP_LENGTH_ON_DISK);
-        BitSet bitMapOnDisk = BitSet.valueOf(bitMapBytes);
+        //TODO: use implemented method
         this.ioSystem = new IOSystem(ldisk);
         ioSystem.readBlock(0, diskBlockBuffer);
         descriptors = new FileDescriptor[FileSystemConfig.NUMBER_OF_DESCRIPTORS];
@@ -101,12 +101,10 @@ public class FileSystem {
         openFileTableEntry.fileDescriptorIndex = fileDescriptorIndex;
 
         //read first block of file to the buffer in OFT if file is not empty
-        if(descriptors[fileDescriptorIndex].fileLength > 0) {
-            ByteBuffer bytes = ByteBuffer.allocate(FileSystemConfig.BLOCK_LENGTH);
-            ioSystem.readBlock(descriptors[fileDescriptorIndex].fileContentsBlocksIndexes[0], bytes);
-            openFileTable.entries[freeOFTEntryIndex].fileBlockInBuffer = 0;
-            openFileTableEntry.readWriteBuffer = bytes.array();
-        }
+        ByteBuffer bytes = ByteBuffer.allocate(FileSystemConfig.BLOCK_LENGTH);
+        ioSystem.readBlock(descriptors[fileDescriptorIndex].fileContentsBlocksIndexes[0], bytes);
+        openFileTableEntry.fileBlockInBuffer = 0;
+        openFileTableEntry.readWriteBuffer = bytes.array();
 
         openFileTable.entries[freeOFTEntryIndex] = openFileTableEntry;
 
@@ -392,7 +390,7 @@ public class FileSystem {
 
         FileDescriptor fileDescriptor = descriptors[entry.fileDescriptorIndex];
 
-        if(fileDescriptor.fileLength == 0) {
+        if(fileDescriptor.fileLength == -1) {
             return -1;
         }
 
@@ -448,7 +446,9 @@ public class FileSystem {
             currentMemoryPosition++;
             entry.currentPositionInFile++;
         }
-
+        saveBitMapToDisk(bitmap);
+        saveDirectoryToDisk();
+        saveDescriptorsToDisk();
         return counter;
     }
 
@@ -716,6 +716,16 @@ public class FileSystem {
             }
             ioSystem.writeBlock(i, diskBlock.array());
         }
+    }
+
+
+    public int closeAllFiles() {
+        for(int i = 0; i < openFileTable.entries.length; i++) {
+            if (openFileTable.entries[i] != null) {
+                close(i);
+            }
+        }
+        return 1;
     }
 
 }
