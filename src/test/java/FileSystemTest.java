@@ -171,4 +171,11 @@ public class FileSystemTest {
         assertEquals(fileSystem.searchFreeDataBlock(fileSystem.bitmap), newFileSystem.searchFreeDataBlock(newFileSystem.bitmap));
         assertEquals(fileSystem.directory.listOfEntries.get(0).fileName, newFileSystem.directory.listOfEntries.get(0).fileName);
     }
+    @Test
+    void listDirectory() {
+        fileSystem.create("f1");
+        fileSystem.create("f2");
+        fileSystem.create("f3");
+        fileSystem.listDirectory();
+    }
 }
