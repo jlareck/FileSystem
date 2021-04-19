@@ -16,13 +16,13 @@ public class FileSystem {
     public Directory directory;
     public OpenFileTable openFileTable;
     /**
-     * This constructor initialise bitmap and sets for first 10 bits - true flag.
-     * This means that first 10 blocks on disk are reserved for bitmap (1 block, 8 bytes in it),
+     * This constructor initialise bitmap and sets for first 8 bits - true flag.
+     * This means that first 8 blocks on disk are reserved for bitmap (1 block, 8 bytes in it),
      * descriptors (6 blocks, 16 bytes per descriptor (4 bytes for file length and 12 for file
-     * content blocks indexes), so in one block we have 4 descriptors) and 3 blocks for directory
-     * (those blocks contain entries from directory, each of them are 8 bytes (4 bytes for file name
+     * content blocks indexes), so in one block we have 4 descriptors) and 1 block for directory
+     * (this block contains entries from directory, each of them are 8 bytes (4 bytes for file name
      * and 4 for descriptor index)). We also initialize first descriptor which contains indexes
-     * to 3 data blocks of directory.
+     * to one data blocks of directory.
      *
      * @param ioSystem
      *
@@ -529,6 +529,14 @@ public class FileSystem {
             }
         }
         return 1;
+    }
+
+    public void listDirectory() {
+        readDirectoryFromDisk();
+        readDescriptorsFromDisk();
+        for (DirectoryEntry entry: directory.listOfEntries) {
+            System.out.println("Name of file: " + entry.fileName + "; Size of file: " + descriptors[entry.fileDescriptorIndex].fileLength);
+        }
     }
 
     private int findDescriptorIndexByFileName(String fileName) {
