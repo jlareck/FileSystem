@@ -3,13 +3,23 @@ package com.fs.shell;
 import com.fs.filesystem.FileSystem;
 import com.fs.iosystem.IOSystem;
 
+import java.io.File;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Shell {
 
+    private IOSystem ioSystem;
     private FileSystem fileSystem;
 
-    public Shell(FileSystem fileSystem) {
+    public Shell(IOSystem ioSystem) {
+        this.ioSystem = ioSystem;
+        this.fileSystem = null;
+    }
+
+    public Shell(IOSystem ioSystem, FileSystem fileSystem) {
+        this.ioSystem = ioSystem;
         this.fileSystem = fileSystem;
     }
 
@@ -164,15 +174,47 @@ public class Shell {
     }
 
     private void read(int index, int count) {
-        //TODO: Create method
+        if (count < 0) {
+            System.out.println("Error");
+            return;
+        }
+        ByteBuffer readBuffer = ByteBuffer.allocate(count);
+        int numOfReadBytes = fileSystem.read(index, readBuffer, count);
+        if (numOfReadBytes == -1) {
+            System.out.println("Error");
+            return;
+        }
+        char[] readBytes = new char[numOfReadBytes];
+        for (int i = 0; i < numOfReadBytes; i++) {
+            readBytes[i] = (char) readBuffer.get();
+        }
+        System.out.println(numOfReadBytes + " bytes read: " + Arrays.toString(readBytes) + ".");
     }
 
     private void write(int index, char c, int count) {
-       //TODO: Create method
+        if (count < 0) {
+            System.out.println("Error");
+            return;
+        }
+        byte[] memArea = new byte[count];
+        for (int i = 0; i < memArea.length; i++) {
+            memArea[i] = (byte) c;
+        }
+        int numOfWrittenBytes = fileSystem.write(index, memArea, count);
+
+        if (numOfWrittenBytes == -1) {
+            System.out.println("Error");
+            return;
+        }
+        System.out.println(numOfWrittenBytes + " bytes written.");
     }
 
     private void seek(int index, int pos) {
-        //TODO: Create method
+        if (fileSystem.seek(index, pos) == -1) {
+            System.out.println("Error");
+            return;
+        }
+        System.out.println("Current position - " + pos + ".");
     }
 
     private void directory() {
@@ -180,11 +222,25 @@ public class Shell {
     }
 
     private void init(String diskCont) {
-        //TODO: Create method
+        //TODO: first parameter - number of blocks (first 3 parameters) but for which purpose it is needed?
+
+        File f = new File(diskCont);
+        if (f.exists()) {
+            //TODO: Open directory
+            //fileSystem = new FileSystem(ioSystem, diskCont);
+            System.out.println("Disk restored.");
+        } else {
+            //TODO: Create and open directory
+            fileSystem = new FileSystem(ioSystem);
+            System.out.println("Disk initialized.");
+        }
     }
 
     private void save(String diskCont) {
-        //TODO: Create method
+        //TODO: add closing all files before saving
+        //TODO: fix using of the parameter
+        fileSystem.ioSystem.saveDiskToFile();
+        System.out.println("Disk saved! Congratulations!");
     }
 
 

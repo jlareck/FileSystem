@@ -12,7 +12,7 @@ public class Main {
         LDisk lDisk = new LDisk();
         IOSystem ioSystem = new IOSystem(lDisk);
         FileSystem fileSystem = new FileSystem(ioSystem);
-        Shell shell = new Shell(fileSystem);
+        Shell shell = new Shell(ioSystem, fileSystem);
         shell.begin();
     }
 }

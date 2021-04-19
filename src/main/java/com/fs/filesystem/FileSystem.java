@@ -374,7 +374,7 @@ public class FileSystem {
      * @param count         number of bytes to be written.
      * @return int    number of bytes written to file.
      */
-    private int write(int OFTEntryIndex, byte[] memArea, int count) {
+    public int write(int OFTEntryIndex, byte[] memArea, int count) {
         if(OFTEntryIndex <= 0 || OFTEntryIndex >= OpenFileTable.OFT_NUMBER_OF_ENTRIES) {
             System.out.println("ERROR! WRONG INDEX");
             return -1;
