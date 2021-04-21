@@ -38,7 +38,7 @@ public class Shell {
             }
 
             switch (commandName) {
-                case "cd": {
+                case "cr": {
                     if (input.length != 2) {
                         System.out.println("Error");
                     } else {
@@ -229,17 +229,22 @@ public class Shell {
             fileSystem = new FileSystem(ioSystem.readDiskFromFile(diskCont));
             System.out.println("Disk restored.");
         } else {
-            try {
-                f.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
             fileSystem = new FileSystem(ioSystem);
             System.out.println("Disk initialized.");
         }
     }
 
     private void save(String diskCont) {
+
+        File f = new File(diskCont);
+        if (!f.exists()) {
+            try {
+                f.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         fileSystem.closeAllFiles();
         fileSystem.ioSystem.saveDiskToFile(diskCont);
         System.out.println("Disk saved! Congratulations!");

@@ -119,7 +119,7 @@ public class FileSystem {
      * @return 1 if everything is OK
      */
     public int close(int OFTEntryIndex) {
-        if(OFTEntryIndex <= 0 || OFTEntryIndex >= OpenFileTable.OFT_NUMBER_OF_ENTRIES) {
+        if(OFTEntryIndex < 0 || OFTEntryIndex >= OpenFileTable.OFT_NUMBER_OF_ENTRIES) {
             System.out.println("ERROR! WRONG INDEX");
             return -1;
         }
