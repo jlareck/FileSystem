@@ -23,16 +23,18 @@ public class FileSystemTest {
 
     @Test
     public void create() {
-        assertEquals(1,fileSystem.create("FILE"));
+        assertEquals(FileSystemConfig.SUCCESS,fileSystem.create("FILE"));
         assertEquals(9, fileSystem.searchFreeDataBlock(fileSystem.bitmap));
+        assertEquals(FileSystemConfig.ERROR, fileSystem.create("FIIIIILE"));
     }
 
     @Test
     public void destroy() {
-        assertEquals(1,fileSystem.create("FILE"));
+        assertEquals(FileSystemConfig.SUCCESS,fileSystem.create("FILE"));
         assertEquals(9, fileSystem.searchFreeDataBlock(fileSystem.bitmap));
-        assertEquals(1,fileSystem.destroy("FILE"));
+        assertEquals(FileSystemConfig.SUCCESS,fileSystem.destroy("FILE"));
         assertEquals(8, fileSystem.searchFreeDataBlock(fileSystem.bitmap));
+        assertEquals(FileSystemConfig.ERROR, fileSystem.destroy("f1"));
     }
 
 

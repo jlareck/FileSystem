@@ -165,7 +165,7 @@ public class FileSystem {
     public int create(String fileName) {
         readDescriptorsFromDisk();
         readDirectoryFromDisk();
-
+        readBitMapFromDisk();
         if (fileName.length() < 1 || fileName.length() > FileSystemConfig.MAXIMUM_FILE_NAME_LENGTH) {
             System.out.println("ERROR! File name is larger than maximum length or it is less than 1");
             return FileSystemConfig.ERROR;
@@ -237,7 +237,7 @@ public class FileSystem {
      *
      */
     public int destroy(String fileName) {
-
+        readBitMapFromDisk();
         readDirectoryFromDisk();
         readDescriptorsFromDisk();
         if (fileName.length() == 0 || fileName.length() > FileSystemConfig.MAXIMUM_FILE_NAME_LENGTH) {
