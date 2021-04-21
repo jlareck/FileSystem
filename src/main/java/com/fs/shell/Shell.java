@@ -224,15 +224,11 @@ public class Shell {
     }
 
     private void init(String diskCont) {
-        //TODO: first parameter - number of blocks (first 3 parameters) but for which purpose it is needed?
-
         File f = new File(diskCont);
         if (f.exists()) {
-            //TODO: Open directory
             fileSystem = new FileSystem(ioSystem.readDiskFromFile(diskCont));
             System.out.println("Disk restored.");
         } else {
-            //TODO: Create and open directory
             try {
                 f.createNewFile();
             } catch (IOException e) {
@@ -244,9 +240,7 @@ public class Shell {
     }
 
     private void save(String diskCont) {
-        //TODO: add closing all files before saving
         fileSystem.closeAllFiles();
-        //TODO: fix using of the parameter
         fileSystem.ioSystem.saveDiskToFile(diskCont);
         System.out.println("Disk saved! Congratulations!");
     }

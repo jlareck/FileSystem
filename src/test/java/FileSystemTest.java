@@ -37,7 +37,77 @@ public class FileSystemTest {
         assertEquals(FileSystemConfig.ERROR, fileSystem.destroy("f1"));
     }
 
+    @Test
+    public void write() {
+        fileSystem.create("FILE");
+        fileSystem.open("FILE");
 
+        byte[] memArea = new byte[60];
+        for (int i = 0; i < memArea.length; i++) {
+            memArea[i] = (byte) 'x';
+        }
+        int bytesWrittenToFile= fileSystem.write(1, memArea, 60);
+        assertNotNull(bytesWrittenToFile);
+        assertEquals(60, bytesWrittenToFile);
+    }
+
+    @Test
+    public void readWithoutWritting() {
+        fileSystem.create("FILE");
+        fileSystem.open("FILE");
+
+        ByteBuffer readBuffer = ByteBuffer.allocate(10);
+        int numOfReadBytes = fileSystem.read(1, readBuffer, 10);
+        assertEquals(-1, numOfReadBytes);
+    }
+
+    @Test
+    public void readWithWritting() {
+        fileSystem.create("FILE");
+        fileSystem.open("FILE");
+
+        byte[] memArea = new byte[30];
+        for (int i = 0; i < memArea.length; i++) {
+            memArea[i] = (byte) 'x';
+        }
+        fileSystem.write(1, memArea, 30);
+
+        ByteBuffer readBuffer = ByteBuffer.allocate(10);
+        int numOfReadBytes = fileSystem.read(1, readBuffer, 10);
+        assertNotNull(numOfReadBytes);
+        assertEquals(10, numOfReadBytes);
+    }
+
+    @Test
+    public void readWithWrittingAtEndOfFile() {
+        fileSystem.create("FILE");
+        fileSystem.open("FILE");
+
+        byte[] memArea = new byte[60];
+        for (int i = 0; i < memArea.length; i++) {
+            memArea[i] = (byte) 'x';
+        }
+        fileSystem.write(1, memArea, 60);
+
+        ByteBuffer readBuffer = ByteBuffer.allocate(10);
+        int numOfReadBytes = fileSystem.read(1, readBuffer, 10);
+        assertNotNull(numOfReadBytes);
+        assertEquals(4, numOfReadBytes);
+    }
+
+    @Test
+    public void seek() {
+        fileSystem.create("FILE");
+        fileSystem.open("FILE");
+
+        byte[] memArea = new byte[60];
+        for (int i = 0; i < memArea.length; i++) {
+            memArea[i] = (byte) 'x';
+        }
+        fileSystem.write(1, memArea, 60);
+        int statusOfSeek = fileSystem.seek(1, 55);
+        assertEquals(1, statusOfSeek);
+    }
 
     @Test
     public void open() {
