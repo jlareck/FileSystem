@@ -140,7 +140,9 @@ public class FileSystem {
 
             int currentBlockNumberOnDisk = fileDescriptor.fileContentsBlocksIndexes[currentBlockNumber];
 
-            ioSystem.writeBlock(currentBlockNumberOnDisk, entry.readWriteBuffer);
+            if(currentBlockNumberOnDisk != -1) {
+                ioSystem.writeBlock(currentBlockNumberOnDisk, entry.readWriteBuffer);
+            }
         }
 
         //remove OFT entry
@@ -248,6 +250,13 @@ public class FileSystem {
         if (descriptorIndex == -1) {
             System.out.println("ERROR! There is no file with file name: " + fileName);
             return FileSystemConfig.ERROR;
+        }
+
+        for(int i=0;i<openFileTable.entries.length;i++) {
+            if(openFileTable.entries[i] != null && openFileTable.entries[i].fileDescriptorIndex == descriptorIndex) {
+                System.out.println("ERROR! You must close file before destroying it");
+                return FileSystemConfig.ERROR;
+            }
         }
 
         for (int i = 0; i < descriptors[descriptorIndex].fileContentsBlocksIndexes.length; i++) {
@@ -490,7 +499,7 @@ public class FileSystem {
             return -1;
         }
         // if buffer holds different block
-        if (entry.fileBlockInBuffer != (entry.currentPositionInFile / FileSystemConfig.BLOCK_LENGTH)) {
+        if (entry.fileBlockInBuffer != (entry.getCurrentDataBlockPosition())) {
             if (entry.bufferModified) {
                 int diskBlock = fileDescriptor.fileContentsBlocksIndexes[entry.fileBlockInBuffer];
                 try {
@@ -501,7 +510,7 @@ public class FileSystem {
             }
 
             try {
-                int newFileBlock = entry.currentPositionInFile / FileSystemConfig.BLOCK_LENGTH;
+                int newFileBlock = entry.getCurrentDataBlockPosition();
 
                 if (fileDescriptor.fileContentsBlocksIndexes[newFileBlock] == -1) {
                     int newDiskBlock = -1;
