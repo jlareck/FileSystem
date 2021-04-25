@@ -16,6 +16,8 @@ public class FileSystem {
     public Directory directory;
     public OpenFileTable openFileTable;
     /**
+     * @author Medynskyi Mykola
+     *
      * This constructor initialise bitmap and sets for first 8 bits - true flag.
      * This means that first 8 blocks on disk are reserved for bitmap (1 block, 8 bytes in it),
      * descriptors (6 blocks, 16 bytes per descriptor (4 bytes for file length and 12 for file
@@ -52,7 +54,9 @@ public class FileSystem {
         saveDirectoryToDisk();
     }
     /**
-       initializing file system from disk
+     * @author Medynskyi Mykola
+     *
+     * initializing file system from disk
      */
     public FileSystem(LDisk ldisk) {
         ByteBuffer diskBlockBuffer = ByteBuffer.allocate(FileSystemConfig.BLOCK_LENGTH);
@@ -152,6 +156,8 @@ public class FileSystem {
     }
 
     /**
+     * @author Medynskyi Mykola
+     *
      * Create method - creates file with given file name. If file name is larger
      * than maximum file name length or the length is less than 1, it prints a message
      * and returns status ERROR which is equal to -1;
@@ -165,9 +171,6 @@ public class FileSystem {
      *
      */
     public int create(String fileName) {
-        readDescriptorsFromDisk();
-        readDirectoryFromDisk();
-        readBitMapFromDisk();
         if (fileName.length() < 1 || fileName.length() > FileSystemConfig.MAXIMUM_FILE_NAME_LENGTH) {
             System.out.println("ERROR! File name is larger than maximum length or it is less than 1");
             return FileSystemConfig.ERROR;
@@ -175,8 +178,7 @@ public class FileSystem {
         // Checking if there is already file in the directory with name: fileName
         for (int i = 0; i < directory.listOfEntries.size(); i++) {
             if (directory.listOfEntries.get(i).fileName.equals(fileName)) {
-                System.out.println("ERROR! THE " + fileName + " ALREADY EXISTS");
-                return FileSystemConfig.ERROR;
+                destroy(fileName);
             }
         }
         // searching free descriptor
@@ -216,6 +218,7 @@ public class FileSystem {
         saveDescriptorsToDisk();
         return FileSystemConfig.SUCCESS;
     }
+
     public int searchFreeDataBlock(BitSet bits) {
         for (int i = 0; i < bits.size(); i++) {
             if (!bits.get(i)) {
@@ -226,6 +229,10 @@ public class FileSystem {
     }
 
     /**
+     * @author Medynskyi Mykola
+     *
+     * @contributor Nikita Pupov: fixed the issue when user wanted to destroy file without closing it
+     *
      * Destroy method - destroys the file from the file system. If file name is larger
      * than maximum file name length or the length is less than 1, it prints a message
      * and returns status ERROR which is equal to -1;
@@ -239,9 +246,6 @@ public class FileSystem {
      *
      */
     public int destroy(String fileName) {
-        readBitMapFromDisk();
-        readDirectoryFromDisk();
-        readDescriptorsFromDisk();
         if (fileName.length() == 0 || fileName.length() > FileSystemConfig.MAXIMUM_FILE_NAME_LENGTH) {
             System.out.println("ERROR! File name is larger than maximum length or it is equal to zero");
             return FileSystemConfig.ERROR;
@@ -266,9 +270,6 @@ public class FileSystem {
                 ioSystem.writeBlock(descriptors[descriptorIndex].fileContentsBlocksIndexes[i], new byte[64]);
             }
         }
-        // TODO: save directory to disk
-
-
 
         directory.listOfEntries.remove(findDirectoryEntryIndex(descriptorIndex));
         descriptors[descriptorIndex] = null;
@@ -540,16 +541,24 @@ public class FileSystem {
         return 1;
     }
 
+    /**
+     * @author Medynskyi Mykola
+     *
+     * This method prints the directory entries data, e.g. filename and size of file
+     */
     public void listDirectory() {
-        readDirectoryFromDisk();
-        readDescriptorsFromDisk();
         for (DirectoryEntry entry: directory.listOfEntries) {
             System.out.println("Name of file: " + entry.fileName + "; Size of file: " + descriptors[entry.fileDescriptorIndex].fileLength);
         }
     }
 
+    /**
+     * @author Medynskyi Mykola
+     *
+     * @param fileName
+     * @return index of descriptor of file
+     */
     private int findDescriptorIndexByFileName(String fileName) {
-        // TODO: read directory from disk
         for (int i = 0; i < directory.listOfEntries.size(); i++) {
             if (directory.listOfEntries.get(i).fileName.equals(fileName)) {
                 return directory.listOfEntries.get(i).fileDescriptorIndex;
@@ -557,8 +566,14 @@ public class FileSystem {
         }
         return -1;
     }
+
+    /**
+     * @author Medynskyi Mykola
+     *
+     * @param descriptorIndex
+     * @return index of directory entry
+     */
     private int findDirectoryEntryIndex(int descriptorIndex) {
-        // TODO: read directory from disk
         for (int i = 0; i < FileSystemConfig.NUMBER_OF_DESCRIPTORS - 1; i++) {
             if (directory.listOfEntries.get(i) != null &&
                     directory.listOfEntries.get(i).fileDescriptorIndex == descriptorIndex) {
@@ -602,6 +617,12 @@ public class FileSystem {
         return BitSet.valueOf(bitMapBytes);
     }
 
+    /**
+     * @author Medynskyi Mykola
+     *
+     * This methods reads descriptors from disk and saves them into descriptors array
+     *
+     */
     public void readDescriptorsFromDisk() {
         for (int i = 1; i <= FileSystemConfig.NUMBER_OF_DESCRIPTOR_BLOCKS; i++) {
             ByteBuffer diskBlockBuffer = ByteBuffer.allocate(FileSystemConfig.BLOCK_LENGTH);
@@ -612,7 +633,6 @@ public class FileSystem {
                     for (int k = 0; k < FileSystemConfig.MAXIMUM_NUMBER_OF_BLOCKS_PER_FILE; k++){
                         diskBlockBuffer.getInt();
                     }
-                    // TODO: discuss if it is necessary to restore empty descriptors or not
                     descriptors[(i-1) * FileSystemConfig.NUMBER_OF_DESCRIPTORS_IN_ONE_BLOCK + j] = null;
                 }
                 else {
@@ -626,7 +646,14 @@ public class FileSystem {
             }
         }
     }
-    public int readDirectoryFromDisk() {
+
+    /**
+     * @author Medynskyi Mykola
+     *
+     * This method reads directory data from disk
+     */
+
+    public void readDirectoryFromDisk() {
         directory = new Directory();
        // readDescriptorsFromDisk();
         FileDescriptor fileDescriptor = descriptors[openFileTable.entries[0].fileDescriptorIndex];
@@ -661,8 +688,17 @@ public class FileSystem {
                 }
             }
         }
-        return FileSystemConfig.SUCCESS;
     }
+
+    /**
+     * @author Medynskyi Mykola
+     *
+     * This method saves directory to the disk. If there are more entries in the directory then
+     * it will return status ERROR (-1). If directory is saved successfully it will return status SUCCESS
+     *
+     * @return -1 if the directory was not saved, 1 if directory was saved successfully
+     */
+
     public int saveDirectoryToDisk() {
         FileDescriptor fileDescriptor = descriptors[openFileTable.entries[0].fileDescriptorIndex];
         int numberOfDirectoryBlocks = 0;
@@ -671,7 +707,7 @@ public class FileSystem {
                 numberOfDirectoryBlocks++;
             }
         }
-        int maximumDirectoryEntriesPerBlock = 8;
+        final int maximumDirectoryEntriesPerBlock = 8;
         if (directory.listOfEntries.size() > maximumDirectoryEntriesPerBlock * numberOfDirectoryBlocks) {
             return FileSystemConfig.ERROR;
         }
@@ -715,6 +751,12 @@ public class FileSystem {
         }
         return FileSystemConfig.SUCCESS;
     }
+
+    /**
+     * @author Medynskyi Mykola
+     *
+     * This method saves descriptors to the disk
+     */
 
     public void saveDescriptorsToDisk() {
         for (int i = 1; i <= FileSystemConfig.NUMBER_OF_DESCRIPTOR_BLOCKS; i++) {

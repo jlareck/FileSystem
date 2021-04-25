@@ -38,6 +38,27 @@ public class FileSystemTest {
     }
 
     @Test
+    public void createFileWithExistingFileName() {
+        fileSystem.create("f1");
+        fileSystem.open("f1");
+        int count = 70;
+        byte[] memArea = new byte[count];
+        for (int i = 0; i < memArea.length; i++) {
+            memArea[i] = (byte) 'x';
+        }
+        fileSystem.write(1, memArea,count);
+        ByteBuffer readBuffer = ByteBuffer.allocate(count);
+        assertTrue(fileSystem.read(1,readBuffer,count )>50);
+        fileSystem.close(1);
+        fileSystem.create("f1");
+        fileSystem.open("f1");
+        readBuffer = ByteBuffer.allocate(count);
+        System.out.println(fileSystem.read(1,readBuffer,count ));
+        // when fileLength is zero then read method returns -1
+        assertTrue(fileSystem.read(1,readBuffer,count )<0);
+    }
+
+    @Test
     public void write() {
         fileSystem.create("FILE");
         fileSystem.open("FILE");
@@ -209,6 +230,7 @@ public class FileSystemTest {
         assertTrue(bitMapOnDisk.get(9));
         assertTrue(bitMapOnDisk.get(10));
     }
+
     @Test
     void saveDirectoryToDisk() {
         int maxNumberOfFiles = 23;
@@ -234,6 +256,7 @@ public class FileSystemTest {
         assertEquals(fileSystem.searchFreeDataBlock(fileSystem.bitmap), newFileSystem.searchFreeDataBlock(newFileSystem.bitmap));
         assertEquals(fileSystem.directory.listOfEntries.get(0).fileName, newFileSystem.directory.listOfEntries.get(0).fileName);
     }
+
     @Test
     void listDirectory() {
         fileSystem.create("f1");

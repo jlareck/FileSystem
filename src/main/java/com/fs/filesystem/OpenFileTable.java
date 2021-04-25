@@ -2,6 +2,10 @@ package com.fs.filesystem;
 
 import com.fs.utils.FileSystemConfig;
 
+/**
+ * @author Medynskyi Mykola and Nikita Pupov
+ */
+
 public class OpenFileTable {
     final public static int OFT_NUMBER_OF_ENTRIES = 4;
 

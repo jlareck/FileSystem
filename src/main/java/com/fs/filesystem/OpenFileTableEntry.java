@@ -2,6 +2,10 @@ package com.fs.filesystem;
 
 import com.fs.utils.FileSystemConfig;
 
+/**
+ * @author Nikita Pupov, Mykola Medynskyi, Taisiia Fenz
+ */
+
 public class OpenFileTableEntry {
     /**
      * Contains buffered data

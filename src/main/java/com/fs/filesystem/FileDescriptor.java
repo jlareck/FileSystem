@@ -2,6 +2,11 @@ package com.fs.filesystem;
 
 import java.util.Arrays;
 
+
+/**
+ * @author Medynskyi Mykola
+ */
+
 public class FileDescriptor {
 
     public int fileLength; // in bytes

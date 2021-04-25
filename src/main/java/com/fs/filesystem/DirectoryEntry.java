@@ -1,5 +1,8 @@
 package com.fs.filesystem;
 
+/**
+ * @author Medyskyi Mykola
+ */
 public class DirectoryEntry {
     public String fileName;
     public int fileDescriptorIndex;

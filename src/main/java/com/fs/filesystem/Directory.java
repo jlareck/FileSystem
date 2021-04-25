@@ -2,6 +2,9 @@ package com.fs.filesystem;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Medynskyi Mykola
+ */
 public class Directory {
     public List<DirectoryEntry> listOfEntries;
     public Directory() {
