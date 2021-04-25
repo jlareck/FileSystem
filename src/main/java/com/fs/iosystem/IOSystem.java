@@ -64,6 +64,9 @@ public class IOSystem {
     }
 
     /**
+     * @author Medynskyi Mykola
+     * @contributor Taisiia Fenz
+     *
      * saving lDisk to txt file
      */
     public void saveDiskToFile(String filePath) {
@@ -72,13 +75,16 @@ public class IOSystem {
             ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
             objectOut.writeObject(lDisk);
             objectOut.close();
-            System.out.println("The object was succesfully written to a file");
+            System.out.println("The disk was succesfully written to a file");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
     /**
+     * @author Medysnkyi Mykola
+     * @contributor Taisiia Fenz
+     *
      * reading disk from txt file
      *
      */
@@ -89,7 +95,7 @@ public class IOSystem {
 
             LDisk obj = (LDisk) objectIn.readObject();
 
-            System.out.println("The Object has been read from the file");
+            System.out.println("The disk has been read from the file");
             objectIn.close();
             return obj;
 

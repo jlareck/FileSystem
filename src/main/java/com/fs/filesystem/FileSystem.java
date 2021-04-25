@@ -55,6 +55,7 @@ public class FileSystem {
     }
     /**
      * @author Medynskyi Mykola
+     * @contributor Nikita Pupov: implemented reading bitmap from disk
      *
      * initializing file system from disk
      */
@@ -63,7 +64,6 @@ public class FileSystem {
 
         byte[] blockBytes = diskBlockBuffer.array();
         byte[] bitMapBytes = Arrays.copyOfRange(blockBytes, 0, FileSystemConfig.BITMAP_LENGTH_ON_DISK);
-        //TODO: use implemented method
         this.ioSystem = new IOSystem(ldisk);
         ioSystem.readBlock(0, diskBlockBuffer);
         descriptors = new FileDescriptor[FileSystemConfig.NUMBER_OF_DESCRIPTORS];
