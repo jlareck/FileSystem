@@ -149,7 +149,7 @@ public class Shell {
             System.out.println("Error");
             return;
         }
-        System.out.println("File " + fileName + " created.");
+        System.out.println("file " + fileName + " created");
     }
 
     private void destroy(String fileName) {
@@ -157,7 +157,7 @@ public class Shell {
             System.out.println("Error");
             return;
         }
-        System.out.println("File " + fileName + " destroyed.");
+        System.out.println("file " + fileName + " destroyed");
     }
 
     private void open(String fileName) {
@@ -166,7 +166,7 @@ public class Shell {
             System.out.println("Error");
             return;
         }
-        System.out.println("File " + fileName + " opened, index = " + index + ".");
+        System.out.println("File " + fileName + " opened, index = " + index);
     }
 
     private void close(int index) {
@@ -174,7 +174,7 @@ public class Shell {
             System.out.println("Error");
             return;
         }
-        System.out.println("File " + index + " closed.");
+        System.out.println("file " + index + " closesd");
     }
 
     private void read(int index, int count) {
@@ -192,7 +192,7 @@ public class Shell {
         for (int i = 0; i < numOfReadBytes; i++) {
             readBytes[i] = (char) readBuffer.get();
         }
-        System.out.println(numOfReadBytes + " bytes read: " + Arrays.toString(readBytes) + ".");
+        System.out.println(numOfReadBytes + " bytes read: " + Arrays.toString(readBytes));
     }
 
     private void write(int index, char c, int count) {
@@ -210,7 +210,7 @@ public class Shell {
             System.out.println("Error");
             return;
         }
-        System.out.println(numOfWrittenBytes + " bytes written.");
+        System.out.println(numOfWrittenBytes + " bytes written");
     }
 
     private void seek(int index, int pos) {
@@ -218,11 +218,11 @@ public class Shell {
             System.out.println("Error");
             return;
         }
-        System.out.println("Current position - " + pos + ".");
+        System.out.println("current position is " + pos);
     }
 
     private void directory() {
-        System.out.println("List of all files.");
+        System.out.println("list of all files:");
         fileSystem.listDirectory();
     }
 
@@ -230,10 +230,10 @@ public class Shell {
         File f = new File(diskCont);
         if (f.exists()) {
             fileSystem = new FileSystem(ioSystem.readDiskFromFile(diskCont));
-            System.out.println("Disk restored.");
+            System.out.println("disk restored");
         } else {
             fileSystem = new FileSystem(ioSystem);
-            System.out.println("Disk initialized.");
+            System.out.println("disk initialized");
         }
     }
 
@@ -250,6 +250,6 @@ public class Shell {
 
         fileSystem.closeAllFiles();
         fileSystem.ioSystem.saveDiskToFile(diskCont);
-        System.out.println("Disk saved! Congratulations!");
+        System.out.println("disk saved");
     }
 }
