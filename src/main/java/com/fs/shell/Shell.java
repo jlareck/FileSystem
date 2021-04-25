@@ -9,6 +9,9 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Scanner;
 
+/**
+ * @author Fenz Taisiia
+ */
 public class Shell {
 
     private IOSystem ioSystem;
@@ -249,6 +252,4 @@ public class Shell {
         fileSystem.ioSystem.saveDiskToFile(diskCont);
         System.out.println("Disk saved! Congratulations!");
     }
-
-
 }

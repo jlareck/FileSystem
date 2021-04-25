@@ -1,5 +1,8 @@
 package com.fs.shell;
 
+/**
+ * @author Fenz Taisiia
+ */
 public interface ShellView {
 
     void begin();
