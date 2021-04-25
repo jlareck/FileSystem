@@ -75,7 +75,6 @@ public class IOSystem {
             ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
             objectOut.writeObject(lDisk);
             objectOut.close();
-            System.out.println("The disk was succesfully written to a file");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -95,7 +94,6 @@ public class IOSystem {
 
             LDisk obj = (LDisk) objectIn.readObject();
 
-            System.out.println("The disk has been read from the file");
             objectIn.close();
             return obj;
 

@@ -212,7 +212,6 @@ public class FileSystem {
         bitmap.set(freeBlockIndex,true);
 
         descriptors[freeDescriptorIndex] = new FileDescriptor(0, new int[]{freeBlockIndex,-1,-1});
-        System.out.println("The file " + fileName+ " has been created successfully");
         saveBitMapToDisk(bitmap);
         saveDirectoryToDisk();
         saveDescriptorsToDisk();
@@ -273,7 +272,6 @@ public class FileSystem {
 
         directory.listOfEntries.remove(findDirectoryEntryIndex(descriptorIndex));
         descriptors[descriptorIndex] = null;
-        System.out.println("The file " + fileName+ " has been destroyed successfully");
         if (directory.listOfEntries.size() % FileSystemConfig.MAXIMUM_DIRECTORY_ENTRIES_PER_BLOCK == 0 && directory.listOfEntries.size() > 0) {
 
             for (int i = descriptors[0].fileContentsBlocksIndexes.length-1; i >= 0; i--) {
@@ -292,6 +290,8 @@ public class FileSystem {
     }
 
     /**
+     * @author Fenz Taisiia
+     *
      * Sequentially reads a number of bytes from the specified file into main memory.
      * Reading begins with the current position in the file.
      *
@@ -343,7 +343,6 @@ public class FileSystem {
         for (int i = 0; i < count && i < memArea.array().length; i++) {
             // if end of file, then return number of bytes read
             if (entry.currentPositionInFile == fileDescriptor.fileLength) {
-                System.out.println("The end of the file is reached");
                 return counter;
             } else {
                 // if end of block, then write buffer to the disk, then read next block to RWBuffer
@@ -369,6 +368,8 @@ public class FileSystem {
     }
 
     /**
+     * @author Fenz Taisiia
+     *
      * Sequentially writes a number of bytes from main memory into the specified file.
      * Writing begins with the current position in the file.
      *
@@ -463,6 +464,8 @@ public class FileSystem {
     }
 
     /**
+     * @author Fenz Taisiia
+     *
      * Move the current position of the file to new position.
      *
      * Set current position to new position
@@ -548,7 +551,7 @@ public class FileSystem {
      */
     public void listDirectory() {
         for (DirectoryEntry entry: directory.listOfEntries) {
-            System.out.println("Name of file: " + entry.fileName + "; Size of file: " + descriptors[entry.fileDescriptorIndex].fileLength);
+            System.out.println("Name of file: " + entry.fileName + ". Size of file: " + descriptors[entry.fileDescriptorIndex].fileLength + ".");
         }
     }
 
@@ -652,7 +655,6 @@ public class FileSystem {
      *
      * This method reads directory data from disk
      */
-
     public void readDirectoryFromDisk() {
         directory = new Directory();
        // readDescriptorsFromDisk();
@@ -698,7 +700,6 @@ public class FileSystem {
      *
      * @return -1 if the directory was not saved, 1 if directory was saved successfully
      */
-
     public int saveDirectoryToDisk() {
         FileDescriptor fileDescriptor = descriptors[openFileTable.entries[0].fileDescriptorIndex];
         int numberOfDirectoryBlocks = 0;
@@ -757,7 +758,6 @@ public class FileSystem {
      *
      * This method saves descriptors to the disk
      */
-
     public void saveDescriptorsToDisk() {
         for (int i = 1; i <= FileSystemConfig.NUMBER_OF_DESCRIPTOR_BLOCKS; i++) {
             ByteBuffer diskBlock = ByteBuffer.allocate(FileSystemConfig.BLOCK_LENGTH);
@@ -780,7 +780,11 @@ public class FileSystem {
         }
     }
 
-
+    /**
+     * @author Fenz Taisiia
+     *
+     * This method reads close all files
+     */
     public int closeAllFiles() {
         for(int i = 0; i < openFileTable.entries.length; i++) {
             if (openFileTable.entries[i] != null) {
