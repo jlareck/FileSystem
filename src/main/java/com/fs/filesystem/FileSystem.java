@@ -79,6 +79,7 @@ public class FileSystem {
     }
 
     /**
+     * @author Nikita Pupov
      * Opens file by its fileName and places it in OFT
      * @param fileName name of the file
      * @return index of file in OFT
@@ -116,6 +117,7 @@ public class FileSystem {
     }
 
     /**
+     * @author Nikita Pupov
      * Finds OFT entry by index
      * Writes buffered data to LDisk
      * Removes entry from OFT
@@ -587,6 +589,7 @@ public class FileSystem {
     }
 
     /**
+     * @author Nikita Pupov
      * Update bitmap on disk
      */
     public void saveBitMapToDisk(BitSet bitmap) {
@@ -608,6 +611,7 @@ public class FileSystem {
     }
 
     /**
+     * @author Nikita Pupov
      * Returns BitMap stored on disk
      */
     public BitSet readBitMapFromDisk() {

@@ -9,16 +9,15 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 
+/**
+ * @author Nikita Pupov
+ */
 public class IOSystem {
 
     private LDisk lDisk;
 
     public IOSystem(LDisk lDisk) {
         this.lDisk = lDisk;
-    }
-
-    public LDisk getlDisk() {
-        return lDisk;
     }
 
     /**

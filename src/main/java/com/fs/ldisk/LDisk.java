@@ -4,6 +4,9 @@ import com.fs.utils.FileSystemConfig;
 
 import java.io.Serializable;
 
+/**
+ * @author Nikita Pupov
+ */
 public class LDisk implements Serializable {
     public byte[][] bytes;
 
