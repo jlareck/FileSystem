@@ -36,9 +36,6 @@ public class Shell {
         while (true) {
             input = scanner.nextLine().split(" ");
             commandName = input[0];
-            for (String word : input) {
-                System.out.println(word);
-            }
 
             switch (commandName) {
                 case "cr": {
