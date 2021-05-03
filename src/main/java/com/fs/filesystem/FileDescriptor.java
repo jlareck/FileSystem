@@ -10,10 +10,12 @@ import java.util.Arrays;
 public class FileDescriptor {
 
     public int fileLength; // in bytes
+    public int countOfOccupiedBytes;
     public int[] fileContentsBlocksIndexes;
 
     public FileDescriptor(int fileLength, int[] fileContentsBlocksIndexes) {
         this.fileLength = fileLength;
+        this.countOfOccupiedBytes = 0;
         this.fileContentsBlocksIndexes = fileContentsBlocksIndexes;
     }
     public FileDescriptor() {

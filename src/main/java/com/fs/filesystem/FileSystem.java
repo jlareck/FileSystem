@@ -436,6 +436,19 @@ public class FileSystem {
             bitmap.set(newDiskBlock, true);
         }
 
+        //number of occupied bytes in the file
+        if (currentBufferPosition < fileDescriptor.countOfOccupiedBytes) {
+            int countOfAddedBytes = count - (fileDescriptor.countOfOccupiedBytes - currentBufferPosition);
+            fileDescriptor.countOfOccupiedBytes += countOfAddedBytes;
+        }
+        else if (currentBufferPosition == fileDescriptor.countOfOccupiedBytes) {
+            fileDescriptor.countOfOccupiedBytes += count;
+        }
+        else {
+            int countOfAddedBytes = currentBufferPosition - fileDescriptor.countOfOccupiedBytes;
+            fileDescriptor.countOfOccupiedBytes += count + countOfAddedBytes;
+        }
+
         // write count bytes from memArea to ReadWriteBuffer starting at currentBufferPosition
         for (int i = 0; i < count && i < memArea.length; i++) {
 
@@ -553,7 +566,7 @@ public class FileSystem {
      */
     public void listDirectory() {
         for (DirectoryEntry entry: directory.listOfEntries) {
-            System.out.println("Name of file: " + entry.fileName + ". Size of file: " + descriptors[entry.fileDescriptorIndex].fileLength + ".");
+            System.out.println(entry.fileName + " " + descriptors[entry.fileDescriptorIndex].countOfOccupiedBytes);
         }
     }
 
