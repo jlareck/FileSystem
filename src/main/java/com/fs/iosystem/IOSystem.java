@@ -13,7 +13,8 @@ import java.nio.ByteBuffer;
  * @author Nikita Pupov
  */
 public class IOSystem {
-
+    // some description to add
+    // TODO: ADD DESCRIPTION
     private LDisk lDisk;
 
     public IOSystem(LDisk lDisk) {
